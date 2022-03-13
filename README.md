@@ -1,4 +1,4 @@
-# BountyBot ![Build Status](https://dev.azure.com/WordlessSafe1/BountyBot/_apis/build/status/WordlessSafe1.BountyBot?branchName=main)
+# BountyBot [![Build Status](https://dev.azure.com/WordlessSafe1/BountyBot/_apis/build/status/WordlessSafe1.BountyBot?branchName=master)](https://dev.azure.com/WordlessSafe1/BountyBot/_build/latest?definitionId=6&branchName=master)
 This is a simple Discord bot created to handle multiple tasks autonomously in the POPULATION: ONE Bounty Hunters Discord server, primarily the management of bounties.
 
 ### Usage
