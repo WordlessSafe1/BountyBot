@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "BountyBot": {
+      "commandName": "Project",
+      "commandLineArgs": "DEBUG"
+    }
+  }
+}
