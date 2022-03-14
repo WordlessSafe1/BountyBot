@@ -21,6 +21,14 @@ namespace BountyBot.Managers
         public static Dictionary<ulong, Player> Players { get => players; }
         public static Player[] Leaderboard { get => leaderboard; }
 
+        // Load players from file
+        public static void Init()
+        {
+            if (!File.Exists(recordPath))
+                SavePlayers(new Dictionary<ulong,Player>());
+            LoadPlayers();
+        }
+
         // Functions
         public static void AddPlayer(Player player) => players.Add(player.UID, player);
         public static Player[] UpdateLeaderboard() => leaderboard = players.Values.OrderBy(x => x.Points).ToArray();
