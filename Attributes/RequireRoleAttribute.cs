@@ -10,9 +10,9 @@ namespace BountyBot.Attributes
 
         public RequireRoleAttribute(string roleName) => this.roleName = roleName.ToLower();
 
-#pragma warning disable CS1998
+#pragma warning disable CS1998 // Await operator not present - Roles must be retrieved synchronously
         public override async Task<bool> ExecuteChecksAsync(InteractionContext ctx) =>
             ctx.Member.Roles.Select(x => x.Name.ToLower()).Contains(roleName);
-#pragma warning restore CS1998
+#pragma warning restore CS1998 // Await operator not present
     }
 }
