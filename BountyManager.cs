@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using System.IO;
 using System.Text.Json;
+using BountyBot.Entities;
 
 namespace BountyBot
 {

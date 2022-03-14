@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
-namespace BountyBot
+namespace BountyBot.Entities
 {
     internal class Bounty
     {
