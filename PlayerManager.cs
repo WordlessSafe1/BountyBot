@@ -10,7 +10,6 @@ namespace BountyBot
 {
     internal static class PlayerManager
     {
-        //
         private static readonly string recordPath = Directory.GetCurrentDirectory() + "\\bounties.dat";
 
         // Fields
@@ -23,6 +22,7 @@ namespace BountyBot
 
         // Functions
         public static void AddPlayer(Player player) => players.Add(player.UID, player);
+        public static Player[] UpdateLeaderboard() => leaderboard = players.Values.OrderBy(x => x.Points).ToArray();
 
         // JSON Functions
         public static Dictionary<ulong, Player> LoadPlayers()
@@ -31,9 +31,7 @@ namespace BountyBot
             UpdateLeaderboard();
             return players;
         }
-        public static Player[] UpdateLeaderboard() => leaderboard = players.Values.OrderBy(x => x.Points).ToArray();
         public static void SavePlayers() => File.WriteAllText(recordPath, JsonSerializer.Serialize(players));
         public static void SavePlayers(Dictionary<ulong,Player> players) => File.WriteAllText(recordPath, JsonSerializer.Serialize(players));
-
     }
 }
