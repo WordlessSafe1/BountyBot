@@ -10,7 +10,7 @@ using BountyBot.Attributes;
 using static BountyBot.Bounty;
 using static BountyBot.BountyManager;
 
-#pragma warning disable CA1822
+#pragma warning disable CA1822 // Mark members static - The SlashCommands API does not permit static command functions.
 
 namespace BountyBot.Commands
 {
