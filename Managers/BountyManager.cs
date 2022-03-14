@@ -8,7 +8,7 @@ using System.IO;
 using System.Text.Json;
 using BountyBot.Entities;
 
-namespace BountyBot
+namespace BountyBot.Managers
 {
     static internal class BountyManager
     {
