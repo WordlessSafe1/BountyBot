@@ -11,7 +11,7 @@ namespace BountyBot.Managers
 {
     internal static class PlayerManager
     {
-        private static readonly string recordPath = Directory.GetCurrentDirectory() + "\\bounties.dat";
+        private static readonly string recordPath = Directory.GetCurrentDirectory() + "\\players.dat";
 
         // Fields
         private static Dictionary<ulong,Player> players;
@@ -30,7 +30,12 @@ namespace BountyBot.Managers
         }
 
         // Functions
-        public static void AddPlayer(Player player) => players.Add(player.UID, player);
+        public static void AddPlayer(Player player)
+        {
+            LoadPlayers();
+            players.Add(player.UID, player);
+            SavePlayers();
+        }
         public static Player[] UpdateLeaderboard() => leaderboard = players.Values.OrderBy(x => x.Points).ToArray();
 
         // JSON Functions
