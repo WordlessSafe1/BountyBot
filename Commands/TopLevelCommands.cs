@@ -7,8 +7,9 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands.Attributes;
 using DSharpPlus.SlashCommands;
-using static BountyBot.BountyManager;
-using static BountyBot.Bounty;
+using static BountyBot.Managers.BountyManager;
+using BountyBot.Entities;
+using static BountyBot.Entities.Bounty;
 using BountyBot.Attributes;
 
 #pragma warning disable CA1822

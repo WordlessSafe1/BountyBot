@@ -27,7 +27,7 @@ namespace BountyBot
             if (!File.Exists(tokenPath))
                 throw new FileNotFoundException("Please add the bot token to " + tokenPath);
             botToken = File.ReadAllText(tokenPath);
-            BountyManager.Init();
+            Managers.BountyManager.Init();
             MainAsync().GetAwaiter().GetResult();
         }
 

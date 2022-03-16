@@ -7,8 +7,9 @@ using DSharpPlus;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.Entities;
 using BountyBot.Attributes;
-using static BountyBot.Bounty;
-using static BountyBot.BountyManager;
+using BountyBot.Entities;
+using static BountyBot.Entities.Bounty;
+using static BountyBot.Managers.BountyManager;
 
 #pragma warning disable CA1822 // Mark members static - The SlashCommands API does not permit static command functions.
 
