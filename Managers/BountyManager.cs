@@ -58,7 +58,7 @@ namespace BountyBot.Managers
         }
 
         // TEMPORARY Functions
-        // Replace with dedicated Player Manager class for scaling purposes
+        // Replace with dedicated Player Manager class for scaling purposes - May not be neccessary; Small audience
         public static Bounty[] GetBountiesByPlayer(ulong player) =>
             Bounties.Where(x => x.AssignedTo.Contains(player)).ToArray();
         public static int GetPointsByPlayer(ulong player) =>
