@@ -6,6 +6,7 @@
 trigger:
 - master
 - Releases/*
+- dev
 
 pool:
   name: default
