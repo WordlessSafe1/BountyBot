@@ -12,12 +12,14 @@ namespace BountyBot.Entities
         public enum SuccessLevel { Fail = -1, InProgress, Success, All = 99 }
 
         // Fields
-        private readonly int id;
+        private int id;
         private readonly string target;
         private readonly DateTime createdAt;
         private readonly int value;
         private SuccessLevel completed; // -1 = Fail, 0 = In Progress, 1 = Success
         private ulong[] assignedTo;
+        private ulong author;
+        private ulong reviewer;
 
         // Properties
         public int ID { get => id; }
@@ -26,21 +28,21 @@ namespace BountyBot.Entities
         public int Value { get => value; }
         public SuccessLevel Completed { get => completed; }
         public ulong[] AssignedTo { get => assignedTo; }
+        public ulong Author { get => author; }
+        public ulong Reviewer { get => reviewer; }
 
         // Constructors
-        public Bounty() =>
-            assignedTo = Array.Empty<ulong>();
-        public Bounty(int id, string target, int value) =>
-            (this.id, this.target, this.value, createdAt, completed, assignedTo) =
-            (id, target, value, DateTime.Now, 0, Array.Empty<ulong>());
-        public Bounty(int id, string target, int value, params ulong[] assignedTo) =>
-            (this.id, this.target, this.value, this.assignedTo, createdAt, completed) =
-            (id, target, value, assignedTo, DateTime.Now, 0);
+        public Bounty(int id, string target, int value, ulong author, params ulong[] assignedTo) =>
+            (this.id, this.target, this.value, this.author, this.assignedTo, createdAt, completed) =
+            (id, target, value, author, assignedTo, DateTime.Now, 0);
+        public Bounty(int id, Bounty bounty, ulong reviewer) =>
+            (this.id, this.target, this.value, this.author, this.assignedTo, createdAt, completed, this.reviewer) =
+            (id, bounty.target, bounty.value, bounty.author, bounty.AssignedTo, DateTime.Now, 0, reviewer);
 
         [System.Text.Json.Serialization.JsonConstructor]
-        public Bounty(int id, string target, DateTime createdAt, int value, SuccessLevel completed, ulong[] assignedTo) =>
-            (this.id, this.target, this.createdAt, this.value, this.completed, this.assignedTo) =
-            (id, target, createdAt, value, completed, assignedTo);
+        public Bounty(int id, string target, DateTime createdAt, int value, SuccessLevel completed, ulong[] assignedTo, ulong author, ulong reviewer) =>
+            (this.id, this.target, this.createdAt, this.value, this.completed, this.assignedTo, this.author, this.reviewer) =
+            (id, target, createdAt, value, completed, assignedTo, author, reviewer);
 
         // Methods
         public void AssignUser(ulong user) =>

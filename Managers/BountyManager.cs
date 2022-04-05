@@ -17,6 +17,9 @@ namespace BountyBot.Managers
         private static Bounty[] bounties;
         public static Bounty[] Bounties { get => bounties; }
 
+        private static Bounty[] proposedBounties;
+        public static Bounty[] ProposedBounties { get => proposedBounties; }
+
         // Load bounties from file
         public static void Init()
         {
@@ -26,15 +29,17 @@ namespace BountyBot.Managers
         }
 
         // Fuctions
-        public static Bounty CreateBounty(string target, int value, params ulong[] assignedTo)
+        public static Bounty CreateBounty(string target, int value, ulong author, params ulong[] assignedTo)
         {
+            if (value <= 0)
+                throw new ArgumentOutOfRangeException(nameof(value));
             LoadBounties();
-            Bounty bounty = new(bounties.Length, target, value, assignedTo);
+            Bounty bounty = new(bounties.Length, target, value, author, assignedTo);
             bounties = bounties.Append(bounty).ToArray();
             SaveBounties();
             return bounty;
         }
-        
+
         public static void CloseBounty(int id, Bounty.SuccessLevel success)
         {
             LoadBounties();
@@ -55,6 +60,27 @@ namespace BountyBot.Managers
             bool success = bounties[id].RemoveUser(user);
             SaveBounties();
             return success;
+        }
+
+        public static Bounty ApproveBounty(int id, ulong reviewer)
+        {
+            LoadBounties();
+            Bounty approvedBounty = new(bounties.Length, proposedBounties[id], reviewer);
+            proposedBounties = proposedBounties.Where(x => x.ID != id).ToArray();
+            bounties = bounties.Append(approvedBounty).ToArray();
+            SaveBounties();
+            return approvedBounty;
+        }
+
+        public static Bounty ProposeBounty(string target, int value, ulong author)
+        {
+            if(value <= 0)
+                throw new ArgumentOutOfRangeException(nameof(value));
+            LoadBounties();
+            Bounty newBounty = new(proposedBounties.Length, target, value, author);
+            proposedBounties = proposedBounties.Append(newBounty).ToArray();
+            SaveBounties();
+            return newBounty;
         }
 
         // TEMPORARY Functions

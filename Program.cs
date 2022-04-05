@@ -14,8 +14,6 @@ namespace BountyBot
     {
         private static bool debugging = false;
         static string botToken;
-        const ulong guildID = 944438370308870235;
-        const ulong testingGuildID = 854506072457871361;
         static readonly string tokenPath = Directory.GetCurrentDirectory() + "\\token.tok";
 
         const ulong bountyHunterRoleID = 944815621865111632;
