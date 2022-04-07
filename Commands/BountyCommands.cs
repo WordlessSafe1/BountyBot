@@ -16,7 +16,7 @@ using static BountyBot.Managers.BountyManager;
 namespace BountyBot.Commands
 {
     [SlashCommandGroup("Bounty", "Manage individual bounties.")]
-    internal class BountyCommands : SlashCommandModule
+    internal class BountyCommands : ApplicationCommandModule
     {
         [SlashCommand("Close", "Closes a bounty by ID."), RequireRole( "Committee of Bounties")]
         public async Task CompleteBounty(InteractionContext ctx, [Option("BountyID","The ID of the bounty to close.")] long longId, [Option("Status", "The status to set. Defaults to Success.")] SuccessLevel success = SuccessLevel.Success)

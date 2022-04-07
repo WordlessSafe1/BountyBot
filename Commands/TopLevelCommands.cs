@@ -16,7 +16,7 @@ using BountyBot.Attributes;
 
 namespace BountyBot.Commands
 {
-    internal class TopLevelCommands : SlashCommandModule
+    internal class TopLevelCommands : ApplicationCommandModule
     {
         [SlashCommand("Bounties", "Shows a list of all bounties.")]
         public async Task ListBounties(InteractionContext ctx, [Option("Filter", "Status to filter entries by")] SuccessLevel status = SuccessLevel.All)
