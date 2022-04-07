@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +11,12 @@ namespace BountyBot.Entities
     {
         // Static Definitions
         public enum SuccessLevel { Fail = -1, InProgress, Success, All = 99 }
+        public static readonly Dictionary<SuccessLevel, string> Icons = new() {
+            { SuccessLevel.Success, ":white_check_mark:" },
+            { SuccessLevel.InProgress, ":hourglass_flowing_sand:" },
+            { SuccessLevel.Fail, ":x:" },
+            { SuccessLevel.All, "" } // Unused
+        };
 
         // Fields
         private readonly int id;
@@ -26,6 +33,12 @@ namespace BountyBot.Entities
         public int Value { get => value; }
         public SuccessLevel Completed { get => completed; }
         public ulong[] AssignedTo { get => assignedTo; }
+
+        // Computing Properties
+        public string Title { get => $"[{ID}] {Icon} {Target}"; }
+        public string Body { get => $"Worth {Value} | {Assignments}"; }
+        public string Icon { get => Icons[Completed]; }
+        private string Assignments { get => (AssignedTo.Length == 0) ? "Unassigned" : "Assigned to: " + string.Join(", ", AssignedTo.Select(x => "<@!" + x + ">")); }
 
         // Constructors
         public Bounty() =>
@@ -55,5 +68,6 @@ namespace BountyBot.Entities
             assignedTo = assignedTo.Where(x => x != user).ToArray();
             return true;
         }
+        
     }
 }
