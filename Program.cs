@@ -28,10 +28,11 @@ namespace BountyBot
                 throw new FileNotFoundException("Please add the bot token to " + tokenPath);
             botToken = File.ReadAllText(tokenPath);
             Managers.BountyManager.Init();
-            MainAsync().GetAwaiter().GetResult();
+            Managers.GuildManager.Init();
+            MainAsync(args).GetAwaiter().GetResult();
         }
 
-        static async Task MainAsync()
+        static async Task MainAsync(string[] args)
         {
             DiscordClient client = new(new DiscordConfiguration()
             {
@@ -41,14 +42,19 @@ namespace BountyBot
             });
 
 
-            var slash = client.UseSlashCommands(); { 
-                if (!debugging)
-                {
-                    slash.RegisterCommands<Commands.TopLevelCommands>(guildID);
-                    slash.RegisterCommands<Commands.BountyCommands>(guildID);
-                }
-                slash.RegisterCommands<Commands.TopLevelCommands>(testingGuildID);
-                slash.RegisterCommands<Commands.BountyCommands>(testingGuildID);
+            var slash = client.UseSlashCommands(); {
+                if (debugging)
+                    foreach (var guild in Managers.GuildManager.Guilds.Where(x => x.deployment == false))
+                    {
+                        slash.RegisterCommands<Commands.TopLevelCommands>(guild.id);
+                        slash.RegisterCommands<Commands.BountyCommands>(guild.id);
+                    }
+                else
+                    foreach (var guild in Managers.GuildManager.Guilds)
+                        {
+                            slash.RegisterCommands<Commands.TopLevelCommands>(guild.id);
+                            slash.RegisterCommands<Commands.BountyCommands>(guild.id);
+                        }
             }
 
             // Event Listeners
