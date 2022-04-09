@@ -65,22 +65,40 @@ namespace BountyBot.Commands
         public async Task ProposeABounty(InteractionContext ctx, [Option("Target", "The person this bounty should target.")] string target, [Option("Value", "The amount this bounty is worth.")] long bountyAmount)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-            Bounty bounty = ProposeBounty(target, (int)bountyAmount, ctx.User.Id);
-            string responseString = "A bounty (P-ID " + bounty.ID + ") has been proposed on " + bounty.Target + " for " + bounty.Value + '.';
-            var response = new DiscordWebhookBuilder().WithContent(responseString);
-            await ctx.EditResponseAsync(response);
-            Log.Out("BountyProposed", "Noted", ConsoleColor.Blue, "Bounty [" + bounty.ID + "] proposed by " + ctx.User.Username + '#' + ctx.User.Discriminator + '.');
+            try
+            {
+                Bounty bounty = ProposeBounty(target, (int)bountyAmount, ctx.User.Id);
+                string responseString = "A bounty (P-ID " + bounty.ID + ") has been proposed against " + bounty.Target + " for " + bounty.Value + '.';
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(responseString));
+                Log.Out("BountyProposed", "Noted", ConsoleColor.Blue, "Bounty [" + bounty.ID + "] proposed by " + ctx.User.Username + '#' + ctx.User.Discriminator + '.');
+            }
+            catch (Exception ex)
+            {
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(":x: **Error**: " + ex.Message));
+            }
         }
 
         [SlashCommand("Approve", "Approve a proposed bounty."), RequireRole("Committee of Bounties")]
         public async Task ApproveABounty(InteractionContext ctx, [Option("P-ID", "The ID of the proposed bounty.")] long id)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-            Bounty bounty = ApproveBounty((int)id, ctx.User.Id);
-            string responseString = "A bounty (ID " + bounty.ID + ") has been placed on " + bounty.Target + " for " + bounty.Value + (bounty.AssignedTo.Length == 0 ? '.' : (". It has been assigned to " + string.Join(", ", bounty.AssignedTo.Select(x => "<@!" + x + ">")) + '.'));
-            var response = new DiscordWebhookBuilder().WithContent(responseString);
-            await ctx.EditResponseAsync(response);
-            Log.Out("BountySet", "Noted", ConsoleColor.Blue, "Bounty [" + bounty.ID + "] approved by " + ctx.User.Username + '#' + ctx.User.Discriminator + '.');
+            try
+            {
+                if (!ProposedBounties.Where(x => x.ID == id).Any())
+                {
+                    await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent($":x: **Error**: proposed bounty [{id}] not found."));
+                    return;
+                }
+                Bounty bounty = ApproveBounty((int)id, ctx.User.Id);
+                string responseString = "A bounty (ID " + bounty.ID + ") has been placed on " + bounty.Target + " for " + bounty.Value + (bounty.AssignedTo.Length == 0 ? '.' : (". It has been assigned to " + string.Join(", ", bounty.AssignedTo.Select(x => "<@!" + x + ">")) + '.'));
+                var response = new DiscordWebhookBuilder().WithContent(responseString);
+                await ctx.EditResponseAsync(response);
+                Log.Out("BountySet", "Noted", ConsoleColor.Blue, "Bounty [" + bounty.ID + "] approved by " + ctx.User.Username + '#' + ctx.User.Discriminator + '.');
+            }
+            catch (Exception ex)
+            {
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(":x: **Error**: " + ex.Message));
+            }
         }
     }
 }

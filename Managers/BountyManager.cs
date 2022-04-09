@@ -24,8 +24,14 @@ namespace BountyBot.Managers
         public static void Init()
         {
             if (!File.Exists(recordPath))
-                SaveBounties(Array.Empty<Bounty>());
-            LoadBounties();
+                SaveBounties((Array.Empty<Bounty>(),Array.Empty<Bounty>()));
+            try { LoadBounties(); }
+            catch (JsonException)
+            {
+                LoadBountiesLegacy();
+                proposedBounties = Array.Empty<Bounty>();
+                SaveBounties();
+            }
         }
 
         // Fuctions
@@ -34,7 +40,7 @@ namespace BountyBot.Managers
             if (value <= 0)
                 throw new ArgumentOutOfRangeException(nameof(value));
             LoadBounties();
-            Bounty bounty = new(bounties.Length, target, value, author, assignedTo);
+            Bounty bounty = new(bounties.Length, author, target, value, assignedTo);
             bounties = bounties.Append(bounty).ToArray();
             SaveBounties();
             return bounty;
@@ -74,10 +80,12 @@ namespace BountyBot.Managers
 
         public static Bounty ProposeBounty(string target, int value, ulong author)
         {
-            if(value <= 0)
+            if (value <= 0)
                 throw new ArgumentOutOfRangeException(nameof(value));
+            if (proposedBounties is null)
+                throw new NotImplementedException();
             LoadBounties();
-            Bounty newBounty = new(proposedBounties.Length, target, value, author);
+            Bounty newBounty = new(proposedBounties.Length, author, target, value, Bounty.SuccessLevel.Proposed);
             proposedBounties = proposedBounties.Append(newBounty).ToArray();
             SaveBounties();
             return newBounty;
@@ -91,11 +99,13 @@ namespace BountyBot.Managers
             GetBountiesByPlayer(player).Where(x => x.Completed == Bounty.SuccessLevel.Success).Select(x => x.Value).Sum();
 
         // JSON Functions
-        public static Bounty[] LoadBounties() =>
+        public static (Bounty[] bounties, Bounty[] proposedBounties) LoadBounties() =>
+            (bounties, proposedBounties) = JsonSerializer.Deserialize<BountyCollectionWrapper>(File.ReadAllText(recordPath)).AsTuple();
+        public static Bounty[] LoadBountiesLegacy() =>
             bounties = JsonSerializer.Deserialize<Bounty[]>(File.ReadAllText(recordPath));
         public static void SaveBounties() =>
-            File.WriteAllText(recordPath, JsonSerializer.Serialize(bounties));
-        public static void SaveBounties(Bounty[] bounties) =>
-            File.WriteAllText(recordPath, JsonSerializer.Serialize(bounties));
+            File.WriteAllText(recordPath, JsonSerializer.Serialize<BountyCollectionWrapper>((bounties, proposedBounties)));
+        public static void SaveBounties((Bounty[], Bounty[]) records) =>
+            File.WriteAllText(recordPath, JsonSerializer.Serialize<BountyCollectionWrapper>(records));
     }
 }
