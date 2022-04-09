@@ -32,7 +32,7 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    sourceFolder: 'obj\Release\net6.0\'
+    sourceFolder: 'bin\Release\net6.0\'
     targetFolder: '$(Build.ArtifactStagingDirectory)'
 
 - task: VSTest@2
