@@ -10,7 +10,14 @@ namespace BountyBot.Entities
     internal class Bounty
     {
         // Static Definitions
+
+        /// <summary>
+        /// Defines <see cref="Bounty"/> status levels.
+        /// </summary>
         public enum SuccessLevel { Fail = -1, InProgress, Success, All = 99 }
+        /// <summary>
+        /// Defines a discord emoji <see cref="string"/> for each <see cref="SuccessLevel"/>.
+        /// </summary>
         public static readonly Dictionary<SuccessLevel, string> Icons = new() {
             { SuccessLevel.Success, ":white_check_mark:" },
             { SuccessLevel.InProgress, ":hourglass_flowing_sand:" },
@@ -27,17 +34,51 @@ namespace BountyBot.Entities
         private ulong[] assignedTo;
 
         // Properties
+        /// <summary>
+        /// The ID of the <see cref="Bounty"/>.
+        /// </summary>
         public int ID { get => id; }
+        /// <summary>
+        /// The person targetted by the <see cref="Bounty"/>.
+        /// </summary>
         public string Target { get => target; }
+        /// <summary>
+        /// When this <see cref="Bounty"/> was created.
+        /// </summary>
         public DateTime CreatedAt { get => createdAt; }
+        /// <summary>
+        /// How much this <see cref="Bounty"/> is worth.
+        /// </summary>
         public int Value { get => value; }
+        /// <summary>
+        /// The current status of this <see cref="Bounty"/>.
+        /// </summary>
         public SuccessLevel Completed { get => completed; }
+        /// <summary>
+        /// Gets an array containing the users assigned to this <see cref="Bounty"/>.
+        /// </summary>
         public ulong[] AssignedTo { get => assignedTo; }
 
         // Computing Properties
+
+        /// <summary>
+        /// Gets the <see cref="string"/> used in the title of an embed.
+        /// </summary>
+        /// <returns>A <see cref="string"/>.</returns>
         public string Title { get => $"[{ID}] {Icon} {Target}"; }
+        /// <summary>
+        /// Gets the <see cref="string"/> used in the body of an embed.
+        /// </summary>
+        /// <returns>A <see cref="string"/>.</returns>
         public string Body { get => $"Worth {Value} | {Assignments}"; }
+        /// <summary>
+        /// Gets the icon associated with the bounty's <see cref="SuccessLevel"/>.
+        /// </summary>
+        /// <returns>A discord emoji <see cref="string"/>.</returns>
         public string Icon { get => Icons[Completed]; }
+        /// <summary>
+        /// Gets a <see cref="string"/> mentioning users assigned to the bounty.
+        /// </summary>
         private string Assignments { get => (AssignedTo.Length == 0) ? "Unassigned" : "Assigned to: " + string.Join(", ", AssignedTo.Select(x => "<@!" + x + ">")); }
 
         // Constructors
@@ -56,11 +97,29 @@ namespace BountyBot.Entities
             (id, target, createdAt, value, completed, assignedTo);
 
         // Methods
+
+        /// <summary>
+        /// Adds a user to <see cref="AssignedTo"/>.
+        /// </summary>
+        /// <param name="user">The ID of the discord user to assign the bounty.</param>
         public void AssignUser(ulong user) =>
             assignedTo = assignedTo.Append(user).ToArray();
+        /// <summary>
+        /// Adds users to <see cref="AssignedTo"/>.
+        /// </summary>
+        /// <param name="user">The IDs of the discord users to assign the bounty.</param>
         public void AssignUser(params ulong[] user) =>
             assignedTo = assignedTo.Union(user).ToArray();
+        /// <summary>
+        /// Sets <see cref="Completed"/>.
+        /// </summary>
+        /// <param name="level">The <see cref="SuccessLevel"/> to set the bounty at.</param>
         public void Complete(SuccessLevel level) => completed = level;
+        /// <summary>
+        /// Unassigns a user from the bounty.
+        /// </summary>
+        /// <param name="user">The ID of the discord user to remove from the bounty.</param>
+        /// <returns>A <see cref="bool"/> reflecting whether or not <paramref name="user"/> was found on the bounty.</returns>
         public bool RemoveUser(ulong user)
         {
             if (!assignedTo.Contains(user))
