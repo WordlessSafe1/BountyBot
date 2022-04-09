@@ -16,7 +16,7 @@ using BountyBot.Attributes;
 
 namespace BountyBot.Commands
 {
-    internal class TopLevelCommands : SlashCommandModule
+    internal class TopLevelCommands : ApplicationCommandModule
     {
         [SlashCommand("Bounties", "Shows a list of all bounties.")]
         public async Task ListBounties(InteractionContext ctx, [Option("Filter", "Status to filter entries by")] SuccessLevel status = SuccessLevel.All)
@@ -31,25 +31,10 @@ namespace BountyBot.Commands
             };
             if (bounties.Length > 0)
                 foreach (Bounty bounty in bounties)
-                { 
-                    // (Don't look too hard, or you'll go insane...)
-                    // Adds a line for each bounty in the following format:
-                    // [Title]:  [ID] (StatusIcon) (Target)
-                    // [body]: Worth (Value) | (AssignedTo)
-                    embed.AddField(
-                        // Title
-                        "[" + bounty.ID + "] " + 
-                        (bounty.Completed == SuccessLevel.Success ? ":white_check_mark: " : bounty.Completed == SuccessLevel.InProgress ? ":hourglass_flowing_sand: " : ":x: ")
-                        + bounty.Target,
-                        // Content
-                        "Worth " + bounty.Value +
-                        (bounty.AssignedTo.Length == 0 ? " | Unassigned" : (" | Assigned to: " + string.Join(", ", bounty.AssignedTo.Select(x => "<@!" + x + ">"))))
-                        );
-                }
+                    embed.AddField(bounty.Title, bounty.Body);
             else
                 embed.AddField("No bounties posted.", "Talk to a committee member to suggest one.");
-            var response = new DiscordWebhookBuilder().AddEmbed(embed);
-            await ctx.EditResponseAsync(response);
+            await ctx.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embed));
         }
 
         [SlashCommand("Points", "Get the amount of points a user has.")]
