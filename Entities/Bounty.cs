@@ -97,28 +97,6 @@ namespace BountyBot.Entities
         [JsonIgnore]
         private string Assignments { get => (AssignedTo.Length == 0) ? "Unassigned" : "Assigned to: " + string.Join(", ", AssignedTo.Select(x => "<@!" + x + ">")); }
 
-        // Computing Properties
-
-        /// <summary>
-        /// Gets the <see cref="string"/> used in the title of an embed.
-        /// </summary>
-        /// <returns>A <see cref="string"/>.</returns>
-        public string Title { get => $"[{ID}] {Icon} {Target}"; }
-        /// <summary>
-        /// Gets the <see cref="string"/> used in the body of an embed.
-        /// </summary>
-        /// <returns>A <see cref="string"/>.</returns>
-        public string Body { get => $"Worth {Value} | {Assignments}"; }
-        /// <summary>
-        /// Gets the icon associated with the bounty's <see cref="SuccessLevel"/>.
-        /// </summary>
-        /// <returns>A discord emoji <see cref="string"/>.</returns>
-        public string Icon { get => Icons[Completed]; }
-        /// <summary>
-        /// Gets a <see cref="string"/> mentioning users assigned to the bounty.
-        /// </summary>
-        private string Assignments { get => (AssignedTo.Length == 0) ? "Unassigned" : "Assigned to: " + string.Join(", ", AssignedTo.Select(x => "<@!" + x + ">")); }
-
         // Constructors
         public Bounty(int id, ulong author, string target, int value, params ulong[] assignedTo) =>
             (this.id, this.target, this.value, this.author, this.reviewer, this.assignedTo, createdAt, completed) =
