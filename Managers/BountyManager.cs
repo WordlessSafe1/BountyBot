@@ -17,24 +17,35 @@ namespace BountyBot.Managers
         private static Bounty[] bounties;
         public static Bounty[] Bounties { get => bounties; }
 
+        private static Bounty[] proposedBounties;
+        public static Bounty[] ProposedBounties { get => proposedBounties; }
+
         // Load bounties from file
         public static void Init()
         {
             if (!File.Exists(recordPath))
-                SaveBounties(Array.Empty<Bounty>());
-            LoadBounties();
+                SaveBounties((Array.Empty<Bounty>(),Array.Empty<Bounty>()));
+            try { LoadBounties(); }
+            catch (JsonException)
+            {
+                LoadBountiesLegacy();
+                proposedBounties = Array.Empty<Bounty>();
+                SaveBounties();
+            }
         }
 
         // Fuctions
-        public static Bounty CreateBounty(string target, int value, params ulong[] assignedTo)
+        public static Bounty CreateBounty(string target, int value, ulong author, params ulong[] assignedTo)
         {
+            if (value <= 0)
+                throw new ArgumentOutOfRangeException(nameof(value));
             LoadBounties();
-            Bounty bounty = new(bounties.Length, target, value, assignedTo);
+            Bounty bounty = new(bounties.Length, author, target, value, assignedTo);
             bounties = bounties.Append(bounty).ToArray();
             SaveBounties();
             return bounty;
         }
-        
+
         public static void CloseBounty(int id, Bounty.SuccessLevel success)
         {
             LoadBounties();
@@ -57,6 +68,29 @@ namespace BountyBot.Managers
             return success;
         }
 
+        public static Bounty ApproveBounty(int id, ulong reviewer)
+        {
+            LoadBounties();
+            Bounty approvedBounty = new(bounties.Length, proposedBounties[id], reviewer);
+            proposedBounties = proposedBounties.Where(x => x.ID != id).ToArray();
+            bounties = bounties.Append(approvedBounty).ToArray();
+            SaveBounties();
+            return approvedBounty;
+        }
+
+        public static Bounty ProposeBounty(string target, int value, ulong author)
+        {
+            if (value <= 0)
+                throw new ArgumentOutOfRangeException(nameof(value));
+            if (proposedBounties is null)
+                throw new NotImplementedException();
+            LoadBounties();
+            Bounty newBounty = new(proposedBounties.Length, author, target, value, Bounty.SuccessLevel.Proposed);
+            proposedBounties = proposedBounties.Append(newBounty).ToArray();
+            SaveBounties();
+            return newBounty;
+        }
+
         // TEMPORARY Functions
         // Replace with dedicated Player Manager class for scaling purposes - May not be neccessary; Small audience
         public static Bounty[] GetBountiesByPlayer(ulong player) =>
@@ -65,11 +99,13 @@ namespace BountyBot.Managers
             GetBountiesByPlayer(player).Where(x => x.Completed == Bounty.SuccessLevel.Success).Select(x => x.Value).Sum();
 
         // JSON Functions
-        public static Bounty[] LoadBounties() =>
+        public static (Bounty[] bounties, Bounty[] proposedBounties) LoadBounties() =>
+            (bounties, proposedBounties) = JsonSerializer.Deserialize<BountyCollectionWrapper>(File.ReadAllText(recordPath)).AsTuple();
+        public static Bounty[] LoadBountiesLegacy() =>
             bounties = JsonSerializer.Deserialize<Bounty[]>(File.ReadAllText(recordPath));
         public static void SaveBounties() =>
-            File.WriteAllText(recordPath, JsonSerializer.Serialize(bounties));
-        public static void SaveBounties(Bounty[] bounties) =>
-            File.WriteAllText(recordPath, JsonSerializer.Serialize(bounties));
+            File.WriteAllText(recordPath, JsonSerializer.Serialize<BountyCollectionWrapper>((bounties, proposedBounties)));
+        public static void SaveBounties((Bounty[], Bounty[]) records) =>
+            File.WriteAllText(recordPath, JsonSerializer.Serialize<BountyCollectionWrapper>(records));
     }
 }
