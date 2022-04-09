@@ -15,16 +15,16 @@ namespace BountyBot.Entities
         /// <summary>
         /// Defines <see cref="Bounty"/> status levels.
         /// </summary>
-        public enum SuccessLevel { Fail = -1, InProgress, Success, Proposed = 80, All = 99 }
+        public enum StatusLevel { Fail = -1, InProgress, Success, Proposed = 80, All = 99 }
         /// <summary>
-        /// Defines a discord emoji <see cref="string"/> for each <see cref="SuccessLevel"/>.
+        /// Defines a discord emoji <see cref="string"/> for each <see cref="StatusLevel"/>.
         /// </summary>
-        public static readonly Dictionary<SuccessLevel, string> Icons = new() {
-            { SuccessLevel.Success, ":white_check_mark:" },
-            { SuccessLevel.InProgress, ":hourglass_flowing_sand:" },
-            { SuccessLevel.Fail, ":x:" },
-            { SuccessLevel.Proposed, "" },
-            { SuccessLevel.All, "" } // Unused
+        public static readonly Dictionary<StatusLevel, string> Icons = new() {
+            { StatusLevel.Success, ":white_check_mark:" },
+            { StatusLevel.InProgress, ":hourglass_flowing_sand:" },
+            { StatusLevel.Fail, ":x:" },
+            { StatusLevel.Proposed, "" },
+            { StatusLevel.All, "" } // Unused
         };
 
         // Fields
@@ -32,7 +32,7 @@ namespace BountyBot.Entities
         private readonly string target;
         private readonly DateTime createdAt;
         private readonly int value;
-        private SuccessLevel completed; // -1 = Fail, 0 = In Progress, 1 = Success
+        private StatusLevel status; // -1 = Fail, 0 = In Progress, 1 = Success
         private ulong[] assignedTo;
         private ulong author;
         private ulong reviewer;
@@ -57,7 +57,7 @@ namespace BountyBot.Entities
         /// <summary>
         /// The current status of this <see cref="Bounty"/>.
         /// </summary>
-        public SuccessLevel Completed { get => completed; }
+        public StatusLevel Status { get => status; }
         /// <summary>
         /// Gets an array containing the users assigned to this <see cref="Bounty"/>.
         /// </summary>
@@ -86,11 +86,11 @@ namespace BountyBot.Entities
         [JsonIgnore]
         public string Body { get => $"Worth {Value} | {Assignments}"; }
         /// <summary>
-        /// Gets the icon associated with the bounty's <see cref="SuccessLevel"/>.
+        /// Gets the icon associated with the bounty's <see cref="StatusLevel"/>.
         /// </summary>
         /// <returns>A discord emoji <see cref="string"/>.</returns>
         [JsonIgnore]
-        public string Icon { get => Icons[Completed]; }
+        public string Icon { get => Icons[Status]; }
         /// <summary>
         /// Gets a <see cref="string"/> mentioning users assigned to the bounty.
         /// </summary>
@@ -99,18 +99,18 @@ namespace BountyBot.Entities
 
         // Constructors
         public Bounty(int id, ulong author, string target, int value, params ulong[] assignedTo) =>
-            (this.id, this.target, this.value, this.author, this.reviewer, this.assignedTo, createdAt, completed) =
+            (this.id, this.target, this.value, this.author, this.reviewer, this.assignedTo, createdAt, status) =
             (id, target, value, author, author, assignedTo, DateTime.Now, 0);
-        public Bounty(int id, ulong author, string target, int value, SuccessLevel status, params ulong[] assignedTo) =>
-            (this.id, this.target, this.value, this.author, this.reviewer, this.completed, this.assignedTo, createdAt, completed) =
-            (id, target, value, author, author, status, assignedTo, DateTime.Now, 0);
+        public Bounty(int id, ulong author, string target, int value, StatusLevel status, params ulong[] assignedTo) =>
+            (this.id, this.target, this.value, this.author, this.reviewer, this.status, this.assignedTo, createdAt) =
+            (id, target, value, author, author, status, assignedTo, DateTime.Now);
         public Bounty(int id, Bounty bounty, ulong reviewer) =>
-            (this.id, this.target, this.value, this.author, this.assignedTo, createdAt, completed, this.reviewer) =
+            (this.id, this.target, this.value, this.author, this.assignedTo, createdAt, status, this.reviewer) =
             (id, bounty.target, bounty.value, bounty.author, bounty.AssignedTo, DateTime.Now, 0, reviewer);
 
         [JsonConstructor]
-        public Bounty(int id, string target, DateTime createdAt, int value, SuccessLevel completed, ulong author, ulong reviewer, ulong[] assignedTo) =>
-            (this.id, this.target, this.createdAt, this.value, this.completed, this.author, this.reviewer, this.assignedTo) =
+        public Bounty(int id, string target, DateTime createdAt, int value, StatusLevel completed, ulong author, ulong reviewer, ulong[] assignedTo) =>
+            (this.id, this.target, this.createdAt, this.value, this.status, this.author, this.reviewer, this.assignedTo) =
             (id, target, createdAt, value, completed, author, reviewer, assignedTo);
 
         // Methods
@@ -128,10 +128,10 @@ namespace BountyBot.Entities
         public void AssignUser(params ulong[] user) =>
             assignedTo = assignedTo.Union(user).ToArray();
         /// <summary>
-        /// Sets <see cref="Completed"/>.
+        /// Sets <see cref="Status"/>.
         /// </summary>
-        /// <param name="level">The <see cref="SuccessLevel"/> to set the bounty at.</param>
-        public void Complete(SuccessLevel level) => completed = level;
+        /// <param name="level">The <see cref="StatusLevel"/> to set the bounty at.</param>
+        public void Complete(StatusLevel level) => status = level;
         /// <summary>
         /// Unassigns a user from the bounty.
         /// </summary>

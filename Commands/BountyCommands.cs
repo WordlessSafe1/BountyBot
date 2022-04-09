@@ -19,7 +19,7 @@ namespace BountyBot.Commands
     internal class BountyCommands : ApplicationCommandModule
     {
         [SlashCommand("Close", "Closes a bounty by ID."), RequireRole( "Committee of Bounties")]
-        public async Task CompleteBounty(InteractionContext ctx, [Option("BountyID","The ID of the bounty to close.")] long longId, [Option("Status", "The status to set. Defaults to Success.")] SuccessLevel success = SuccessLevel.Success)
+        public async Task CompleteBounty(InteractionContext ctx, [Option("BountyID","The ID of the bounty to close.")] long longId, [Option("Status", "The status to set. Defaults to Success.")] StatusLevel success = StatusLevel.Success)
         {
             int id = (int)longId;
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);

@@ -19,10 +19,10 @@ namespace BountyBot.Commands
     internal class TopLevelCommands : ApplicationCommandModule
     {
         [SlashCommand("Bounties", "Shows a list of all bounties.")]
-        public async Task ListBounties(InteractionContext ctx, [Option("Filter", "Status to filter entries by")] SuccessLevel status = SuccessLevel.All)
+        public async Task ListBounties(InteractionContext ctx, [Option("Filter", "Status to filter entries by")] StatusLevel status = StatusLevel.All)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-            Bounty[] bounties = (status == SuccessLevel.All ? Bounties : Bounties.Where(x => x.Completed == status).ToArray());
+            Bounty[] bounties = (status == StatusLevel.All ? Bounties : Bounties.Where(x => x.Status == status).ToArray());
             DiscordEmbedBuilder embed = new()
             {
                 Title = "Bounty Board - " + status.ToString(),

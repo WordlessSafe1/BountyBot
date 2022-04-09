@@ -46,7 +46,7 @@ namespace BountyBot.Managers
             return bounty;
         }
 
-        public static void CloseBounty(int id, Bounty.SuccessLevel success)
+        public static void CloseBounty(int id, Bounty.StatusLevel success)
         {
             LoadBounties();
             bounties[id].Complete(success);
@@ -85,7 +85,7 @@ namespace BountyBot.Managers
             if (proposedBounties is null)
                 throw new NotImplementedException();
             LoadBounties();
-            Bounty newBounty = new(proposedBounties.Length, author, target, value, Bounty.SuccessLevel.Proposed);
+            Bounty newBounty = new(proposedBounties.Length, author, target, value, Bounty.StatusLevel.Proposed);
             proposedBounties = proposedBounties.Append(newBounty).ToArray();
             SaveBounties();
             return newBounty;
@@ -96,7 +96,7 @@ namespace BountyBot.Managers
         public static Bounty[] GetBountiesByPlayer(ulong player) =>
             Bounties.Where(x => x.AssignedTo.Contains(player)).ToArray();
         public static int GetPointsByPlayer(ulong player) =>
-            GetBountiesByPlayer(player).Where(x => x.Completed == Bounty.SuccessLevel.Success).Select(x => x.Value).Sum();
+            GetBountiesByPlayer(player).Where(x => x.Status == Bounty.StatusLevel.Success).Select(x => x.Value).Sum();
 
         // JSON Functions
         public static (Bounty[] bounties, Bounty[] proposedBounties) LoadBounties() =>
