@@ -83,7 +83,7 @@ namespace BountyBot.Managers
             if (value <= 0)
                 throw new ArgumentOutOfRangeException(nameof(value));
             if (proposedBounties is null)
-                throw new NotImplementedException();
+                throw new NullReferenceException("'proposedBounties' returned null.");
             LoadBounties();
             Bounty newBounty = new( (ProposedBounties.Any() ? proposedBounties.Last().ID + 1 : 0) , author, target, value, Bounty.StatusLevel.Proposed);
             proposedBounties = proposedBounties.Append(newBounty).ToArray();
