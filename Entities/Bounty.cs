@@ -109,9 +109,9 @@ namespace BountyBot.Entities
             (id, bounty.target, bounty.value, bounty.author, bounty.AssignedTo, DateTime.Now, 0, reviewer);
 
         [JsonConstructor]
-        public Bounty(int id, string target, DateTime createdAt, int value, StatusLevel completed, ulong author, ulong reviewer, ulong[] assignedTo) =>
+        public Bounty(int id, string target, DateTime createdAt, int value, StatusLevel status, ulong author, ulong reviewer, ulong[] assignedTo) =>
             (this.id, this.target, this.createdAt, this.value, this.status, this.author, this.reviewer, this.assignedTo) =
-            (id, target, createdAt, value, completed, author, reviewer, assignedTo);
+            (id, target, createdAt, value, status, author, reviewer, assignedTo);
 
         // Methods
 

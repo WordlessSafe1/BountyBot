@@ -102,7 +102,7 @@ namespace BountyBot.Managers
         public static (Bounty[] bounties, Bounty[] proposedBounties) LoadBounties() =>
             (bounties, proposedBounties) = JsonSerializer.Deserialize<BountyCollectionWrapper>(File.ReadAllText(recordPath)).AsTuple();
         public static Bounty[] LoadBountiesLegacy() =>
-            bounties = JsonSerializer.Deserialize<Bounty[]>(File.ReadAllText(recordPath));
+            bounties = JsonSerializer.Deserialize<Bounty[]>(File.ReadAllText(recordPath).Replace("Completed","Status"));
         public static void SaveBounties() =>
             File.WriteAllText(recordPath, JsonSerializer.Serialize<BountyCollectionWrapper>((bounties, proposedBounties)));
         public static void SaveBounties((Bounty[], Bounty[]) records) =>
