@@ -83,9 +83,9 @@ namespace BountyBot.Managers
             if (value <= 0)
                 throw new ArgumentOutOfRangeException(nameof(value));
             if (proposedBounties is null)
-                throw new NotImplementedException();
+                throw new NullReferenceException("'proposedBounties' returned null.");
             LoadBounties();
-            Bounty newBounty = new(proposedBounties.Length, author, target, value, Bounty.StatusLevel.Proposed);
+            Bounty newBounty = new( (ProposedBounties.Any() ? proposedBounties.Last().ID + 1 : 0) , author, target, value, Bounty.StatusLevel.Proposed);
             proposedBounties = proposedBounties.Append(newBounty).ToArray();
             SaveBounties();
             return newBounty;
@@ -102,7 +102,7 @@ namespace BountyBot.Managers
         public static (Bounty[] bounties, Bounty[] proposedBounties) LoadBounties() =>
             (bounties, proposedBounties) = JsonSerializer.Deserialize<BountyCollectionWrapper>(File.ReadAllText(recordPath)).AsTuple();
         public static Bounty[] LoadBountiesLegacy() =>
-            bounties = JsonSerializer.Deserialize<Bounty[]>(File.ReadAllText(recordPath));
+            bounties = JsonSerializer.Deserialize<Bounty[]>(File.ReadAllText(recordPath).Replace("Completed","Status"));
         public static void SaveBounties() =>
             File.WriteAllText(recordPath, JsonSerializer.Serialize<BountyCollectionWrapper>((bounties, proposedBounties)));
         public static void SaveBounties((Bounty[], Bounty[]) records) =>
