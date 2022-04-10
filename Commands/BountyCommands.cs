@@ -94,7 +94,7 @@ namespace BountyBot.Commands
                 Bounty bounty = ApproveBounty((int)id, ctx.User.Id);
                 string responseString = "A bounty (ID " + bounty.ID + ") has been placed on " + bounty.Target + " for " + bounty.Value + (bounty.AssignedTo.Length == 0 ? '.' : (". It has been assigned to " + string.Join(", ", bounty.AssignedTo.Select(x => "<@!" + x + ">")) + '.'));
                 await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(responseString));
-                await (await ctx.Guild.GetMemberAsync(bounty.Author)).SendMessageAsync($"Your proposal (P-ID {id}) has been approved as bounty {bounty.ID}!");
+                await (await ctx.Guild.GetMemberAsync(bounty.Author)).SendMessageAsync($"Your proposal (P-ID {id}) has been approved as bounty [{bounty.ID}]!");
                 Log.Out("BountySet", "Noted", ConsoleColor.Blue, "Bounty [" + bounty.ID + "] approved by " + ctx.User.Username + '#' + ctx.User.Discriminator + '.');
             }
             catch (Exception ex)
