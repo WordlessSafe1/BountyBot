@@ -70,6 +70,8 @@ namespace BountyBot.Commands
                 Bounty bounty = ProposeBounty(target, (int)bountyAmount, ctx.User.Id);
                 string responseString = "A bounty (P-ID " + bounty.ID + ") has been proposed against " + bounty.Target + " for " + bounty.Value + '.';
                 await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(responseString));
+                var userSnowflake = await ctx.Guild.GetMemberAsync(bounty.Author);
+                await userSnowflake.SendMessageAsync($"Your proposal for bounty (P-ID {bounty.ID}) against {bounty.Target} has been submitted!\r\nYou'll receive a DM once it's been reviewed!");
                 Log.Out("BountyProposed", "Noted", ConsoleColor.Blue, "Bounty [" + bounty.ID + "] proposed by " + ctx.User.Username + '#' + ctx.User.Discriminator + '.');
             }
             catch (Exception ex)
@@ -93,6 +95,7 @@ namespace BountyBot.Commands
                 string responseString = "A bounty (ID " + bounty.ID + ") has been placed on " + bounty.Target + " for " + bounty.Value + (bounty.AssignedTo.Length == 0 ? '.' : (". It has been assigned to " + string.Join(", ", bounty.AssignedTo.Select(x => "<@!" + x + ">")) + '.'));
                 var response = new DiscordWebhookBuilder().WithContent(responseString);
                 await ctx.EditResponseAsync(response);
+                await (await ctx.Guild.GetMemberAsync(bounty.Author)).SendMessageAsync($"Your proposal (P-ID {id}) has been approved as bounty {bounty.ID}!");
                 Log.Out("BountySet", "Noted", ConsoleColor.Blue, "Bounty [" + bounty.ID + "] approved by " + ctx.User.Username + '#' + ctx.User.Discriminator + '.');
             }
             catch (Exception ex)
