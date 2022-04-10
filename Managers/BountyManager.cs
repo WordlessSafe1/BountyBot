@@ -12,13 +12,24 @@ namespace BountyBot.Managers
 {
     static internal class BountyManager
     {
+        // Static Definitions
         private static readonly string recordPath = Directory.GetCurrentDirectory() + "\\bounties.dat";
 
+        // Fields
         private static Bounty[] bounties;
-        public static Bounty[] Bounties { get => bounties; }
-
         private static Bounty[] proposedBounties;
+
+        // Properties
+        /// <summary>
+        /// Gets all approved <see cref="Bounty"/> objects.
+        /// </summary>
+        /// <returns>An <see cref="Array"/> of <see cref="Bounty"/> objects.</returns>
         public static Bounty[] ProposedBounties { get => proposedBounties; }
+        /// <summary>
+        /// Gets all proposed <see cref="Bounty"/> objects.
+        /// </summary>
+        /// <returns>An <see cref="Array"/> of <see cref="Bounty"/> objects.</returns>
+        public static Bounty[] Bounties { get => bounties; }
 
         // Load bounties from file
         public static void Init()
@@ -35,6 +46,15 @@ namespace BountyBot.Managers
         }
 
         // Fuctions
+        /// <summary>
+        /// Creates a <see cref="Bounty"/>, and adds it to <see cref="Bounties"/>.
+        /// </summary>
+        /// <param name="target">The username the <see cref="Bounty"/> targets.</param>
+        /// <param name="value">The amount of points the <see cref="Bounty"/> is worth.</param>
+        /// <param name="author">The discord id of the creator/proposer of the <see cref="Bounty"/>.</param>
+        /// <param name="assignedTo">The discord id(s) of the users assigned to the <see cref="Bounty"/>.</param>
+        /// <returns>The created <see cref="Bounty"/> object.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Bounty CreateBounty(string target, int value, ulong author, params ulong[] assignedTo)
         {
             if (value <= 0)
@@ -45,21 +65,34 @@ namespace BountyBot.Managers
             SaveBounties();
             return bounty;
         }
-
+        /// <summary>
+        /// Selects a <see cref="Bounty"/> by <paramref name="id"/>, and sets the status to the value of <paramref name="success"/>.
+        /// </summary>
+        /// <param name="id">The id of the <see cref="Bounty"/> to alter.</param>
+        /// <param name="success">The <see cref="Bounty.StatusLevel"/> to set the status of the <see cref="Bounty"/> to.</param>
         public static void CloseBounty(int id, Bounty.StatusLevel success)
         {
             LoadBounties();
             bounties[id].Complete(success);
             SaveBounties();
         }
-
+        /// <summary>
+        /// Assigns a <paramref name="user"/> to a <see cref="Bounty"/>.
+        /// </summary>
+        /// <param name="id">The id of the <see cref="Bounty"/> to alter.</param>
+        /// <param name="user">The discord id of the <paramref name="user"/> to assign to the <see cref="Bounty"/>.</param>
         public static void AssignToBounty(int id, ulong user)
         {
             LoadBounties();
             bounties[id].AssignUser(user);
             SaveBounties();
         }
-
+        /// <summary>
+        /// Removes a <paramref name="user"/> from a <see cref="Bounty"/>.
+        /// </summary>
+        /// <param name="id">The id of the <see cref="Bounty"/> to alter.</param>
+        /// <param name="user">The discord id of the <paramref name="user"/> to remove from the <see cref="Bounty"/>.</param>
+        /// <returns>A <see cref="bool"/> reflecting whether the <paramref name="user"/> was found on the <see cref="Bounty"/> identified by <paramref name="id"/>.</returns>
         public static bool RemoveFromBounty(int id, ulong user)
         {
             LoadBounties();
@@ -67,7 +100,12 @@ namespace BountyBot.Managers
             SaveBounties();
             return success;
         }
-
+        /// <summary>
+        /// Approves a proposed <see cref="Bounty"/>.
+        /// </summary>
+        /// <param name="id">The id of the <see cref="Bounty"/> to alter.</param>
+        /// <param name="reviewer">The discord id of the user that approved the <see cref="Bounty"/>.</param>
+        /// <returns>A <see cref="Bounty"/> object.</returns>
         public static Bounty ApproveBounty(int id, ulong reviewer)
         {
             LoadBounties();
@@ -77,7 +115,15 @@ namespace BountyBot.Managers
             SaveBounties();
             return approvedBounty;
         }
-
+        /// <summary>
+        /// Creates a <see cref="Bounty"/> proposal, and adds it to <see cref="ProposedBounties"/>.
+        /// </summary>
+        /// <param name="target">The username the proposed <see cref="Bounty"/> targets.</param>
+        /// <param name="value">The amount of points the proposed <see cref="Bounty"/> is worth.</param>
+        /// <param name="author">The discord id of the proposer of the <see cref="Bounty"/>.</param>
+        /// <returns>A <see cref="Bounty"/> object.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <exception cref="NullReferenceException"></exception>
         public static Bounty ProposeBounty(string target, int value, ulong author)
         {
             if (value <= 0)
@@ -93,18 +139,43 @@ namespace BountyBot.Managers
 
         // TEMPORARY Functions
         // Replace with dedicated Player Manager class for scaling purposes - May not be neccessary; Small audience
+        /// <summary>
+        /// Gets all <see cref="Bounty"/> objects assigned to a <paramref name="player"/>.
+        /// </summary>
+        /// <param name="player">The discord id of the user to search for.</param>
+        /// <returns>An <see cref="Array"/> of <see cref="Bounty"/> objects.</returns>
         public static Bounty[] GetBountiesByPlayer(ulong player) =>
             Bounties.Where(x => x.AssignedTo.Contains(player)).ToArray();
+        /// <summary>
+        /// Gets the sum of points from all completed <see cref="Bounty"/> objects to which the <paramref name="player"/> is assigned.
+        /// </summary>
+        /// <param name="player">The discord id of the user to search for.</param>
+        /// <returns>An <see cref="int"/> value.</returns>
         public static int GetPointsByPlayer(ulong player) =>
             GetBountiesByPlayer(player).Where(x => x.Status == Bounty.StatusLevel.Success).Select(x => x.Value).Sum();
 
         // JSON Functions
+        /// <summary>
+        /// Loads all approved and proposed <see cref="Bounty"/> objects from the disk.
+        /// </summary>
+        /// <returns>A <see cref="ValueTuple"/>&lt;<see cref="Bounty"/>[], <see cref="Bounty"/>[]&gt; containing the <see cref="Array"/> from <see cref="Bounties"/> and <see cref="ProposedBounties"/>.</returns>
         public static (Bounty[] bounties, Bounty[] proposedBounties) LoadBounties() =>
             (bounties, proposedBounties) = JsonSerializer.Deserialize<BountyCollectionWrapper>(File.ReadAllText(recordPath)).AsTuple();
+        /// <summary>
+        /// <b>*Deprecated*</b> Loads all approved <see cref="Bounty"/> objects from the disk.
+        /// </summary>
+        /// <returns>An <see cref="Array"/> of <see cref="Bounty"/> objects.</returns>
         public static Bounty[] LoadBountiesLegacy() =>
             bounties = JsonSerializer.Deserialize<Bounty[]>(File.ReadAllText(recordPath).Replace("Completed","Status"));
+        /// <summary>
+        /// Saves all  approved and proposed <see cref="Bounty"/> objects to the disk.
+        /// </summary>
         public static void SaveBounties() =>
             File.WriteAllText(recordPath, JsonSerializer.Serialize<BountyCollectionWrapper>((bounties, proposedBounties)));
+        /// <summary>
+        /// Saves the specified approved and proposed <see cref="Bounty"/> objects to the disk.
+        /// </summary>
+        /// <param name="records">A <see cref="ValueTuple"/>&lt;<see cref="Bounty"/>[], <see cref="Bounty"/>[]&gt; containing the approved and proposed <see cref="Bounty"/> objects to save.</param>
         public static void SaveBounties((Bounty[], Bounty[]) records) =>
             File.WriteAllText(recordPath, JsonSerializer.Serialize<BountyCollectionWrapper>(records));
     }
