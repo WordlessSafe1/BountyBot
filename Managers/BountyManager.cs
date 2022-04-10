@@ -85,7 +85,7 @@ namespace BountyBot.Managers
             if (proposedBounties is null)
                 throw new NotImplementedException();
             LoadBounties();
-            Bounty newBounty = new(proposedBounties.Length, author, target, value, Bounty.StatusLevel.Proposed);
+            Bounty newBounty = new( (ProposedBounties.Any() ? proposedBounties.Last().ID + 1 : 0) , author, target, value, Bounty.StatusLevel.Proposed);
             proposedBounties = proposedBounties.Append(newBounty).ToArray();
             SaveBounties();
             return newBounty;
