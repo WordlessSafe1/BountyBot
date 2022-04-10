@@ -34,8 +34,8 @@ namespace BountyBot.Entities
         private readonly int value;
         private StatusLevel status; // -1 = Fail, 0 = In Progress, 1 = Success
         private ulong[] assignedTo;
-        private ulong author;
-        private ulong reviewer;
+        private readonly ulong author;
+        private readonly ulong reviewer;
 
         // Properties
         /// <summary>
