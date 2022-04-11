@@ -70,10 +70,10 @@ namespace BountyBot.Managers
         /// </summary>
         /// <param name="id">The id of the <see cref="Bounty"/> to alter.</param>
         /// <param name="success">The <see cref="Bounty.StatusLevel"/> to set the status of the <see cref="Bounty"/> to.</param>
-        public static void CloseBounty(int id, Bounty.StatusLevel success)
+        public static void SetBountyStatus(int id, Bounty.StatusLevel success)
         {
             LoadBounties();
-            bounties[id].Complete(success);
+            bounties[id].SetStatus(success);
             SaveBounties();
         }
         /// <summary>
@@ -135,6 +135,20 @@ namespace BountyBot.Managers
             proposedBounties = proposedBounties.Append(newBounty).ToArray();
             SaveBounties();
             return newBounty;
+        }
+        /// <summary>
+        /// Rejects a proposed <see cref="Bounty"/>.
+        /// </summary>
+        /// <param name="id">The id of the <see cref="Bounty"/> to alter.</param>
+        /// <param name="reviewer">The discord id of the user that approved the <see cref="Bounty"/>.</param>
+        /// <returns>A <see cref="Bounty"/> object.</returns>
+        public static Bounty RejectBounty(int id, ulong reviewer)
+        {
+            LoadBounties();
+            Bounty rejectedBounty = new(id,proposedBounties.Where(x => x.ID == id).First(), reviewer, Bounty.StatusLevel.Rejected);
+            proposedBounties = proposedBounties.Where(x => x.ID != id).ToArray();
+            SaveBounties();
+            return rejectedBounty;
         }
 
         // TEMPORARY Functions
