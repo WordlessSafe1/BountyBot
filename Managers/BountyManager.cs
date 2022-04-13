@@ -39,9 +39,12 @@ namespace BountyBot.Managers
             try { LoadBounties(); }
             catch (JsonException)
             {
+                Log.Out("BountyManager\\Init", "Info", ConsoleColor.DarkCyan, "JSON format discrepancy detected. Attempting to load from legacy...");
                 LoadBountiesLegacy();
                 proposedBounties = Array.Empty<Bounty>();
+                Log.Out("BountyManager\\Init", "Info", ConsoleColor.DarkCyan, "Sucessfully loaded from legacy. Attempting to update records...");
                 SaveBounties();
+                Log.Out("BountyManager\\Init", "Info", ConsoleColor.DarkCyan, "Sucessfully converted records. ");
             }
         }
 
