@@ -119,7 +119,7 @@ namespace BountyBot.Managers
         public static Bounty ApproveBounty(int id, ulong reviewer)
         {
             LoadBounties();
-            Bounty approvedBounty = new(bounties.Length, proposedBounties[id], reviewer);
+            Bounty approvedBounty = new(bounties.Length, proposedBounties.Where(x => x.ID == id).First(), reviewer);
             proposedBounties = proposedBounties.Where(x => x.ID != id).ToArray();
             bounties = bounties.Append(approvedBounty).ToArray();
             SaveBounties();
