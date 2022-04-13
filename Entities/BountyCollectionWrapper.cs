@@ -12,15 +12,17 @@ namespace BountyBot.Entities
         public Bounty[] bounties;
         [JsonInclude]
         public Bounty[] proposedBounties;
+        [JsonInclude]
+        public Bounty[] archivedBounties;
 
         [JsonConstructor]
-        public BountyCollectionWrapper(Bounty[] bounties, Bounty[] proposedBounties) =>
-            (this.bounties, this.proposedBounties) = (bounties, proposedBounties);
+        public BountyCollectionWrapper(Bounty[] bounties, Bounty[] proposedBounties, Bounty[] archivedBounties) =>
+            (this.bounties, this.proposedBounties, this.archivedBounties) = (bounties, proposedBounties, archivedBounties);
 
-        public ValueTuple<Bounty[], Bounty[]> AsTuple() => this;
+        public ValueTuple<Bounty[], Bounty[], Bounty[]> AsTuple() => this;
 
         // Implicit Conversions
-        public static implicit operator ValueTuple<Bounty[], Bounty[]>(BountyCollectionWrapper wrapper) => (wrapper.bounties, wrapper.proposedBounties);
-        public static implicit operator BountyCollectionWrapper(ValueTuple<Bounty[], Bounty[]> tuple) => new(tuple.Item1, tuple.Item2);
+        public static implicit operator ValueTuple<Bounty[], Bounty[], Bounty[]>(BountyCollectionWrapper wrapper) => (wrapper.bounties, wrapper.proposedBounties, wrapper.archivedBounties);
+        public static implicit operator BountyCollectionWrapper(ValueTuple<Bounty[], Bounty[], Bounty[]> tuple) => new(tuple.Item1, tuple.Item2, tuple.Item3);
     }
 }
