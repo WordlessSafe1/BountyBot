@@ -18,6 +18,7 @@ namespace BountyBot.Managers
         // Fields
         private static Bounty[] bounties;
         private static Bounty[] proposedBounties;
+        private static Bounty[] archivedBounties;
 
         // Properties
         /// <summary>
@@ -30,18 +31,27 @@ namespace BountyBot.Managers
         /// </summary>
         /// <returns>An <see cref="Array"/> of <see cref="Bounty"/> objects.</returns>
         public static Bounty[] Bounties { get => bounties; }
+        /// <summary>
+        /// Reserved for future use.
+        /// </summary>
+        /// <exception cref="NotImplementedException"/>
+        public static Bounty[] ArchivedBounties { get => throw new NotImplementedException(); }
 
         // Load bounties from file
         public static void Init()
         {
             if (!File.Exists(recordPath))
-                SaveBounties((Array.Empty<Bounty>(),Array.Empty<Bounty>()));
+                SaveBounties((Array.Empty<Bounty>(),Array.Empty<Bounty>(),Array.Empty<Bounty>()));
             try { LoadBounties(); }
             catch (JsonException)
             {
+                Log.Out("Init\\BntyMngr", "Info", ConsoleColor.DarkCyan, "JSON format discrepancy detected. Attempting to load from legacy...");
                 LoadBountiesLegacy();
                 proposedBounties = Array.Empty<Bounty>();
+                archivedBounties = Array.Empty<Bounty>();
+                Log.Out("Init\\BntyMngr", "Info", ConsoleColor.DarkCyan, "Sucessfully loaded from legacy. Attempting to update records...\r\n");
                 SaveBounties();
+                Log.Out("Init\\BntyMngr", "Info", ConsoleColor.DarkCyan, "Sucessfully converted records.");
             }
         }
 
@@ -70,10 +80,10 @@ namespace BountyBot.Managers
         /// </summary>
         /// <param name="id">The id of the <see cref="Bounty"/> to alter.</param>
         /// <param name="success">The <see cref="Bounty.StatusLevel"/> to set the status of the <see cref="Bounty"/> to.</param>
-        public static void CloseBounty(int id, Bounty.StatusLevel success)
+        public static void SetBountyStatus(int id, Bounty.StatusLevel success)
         {
             LoadBounties();
-            bounties[id].Complete(success);
+            bounties[id].SetStatus(success);
             SaveBounties();
         }
         /// <summary>
@@ -136,6 +146,20 @@ namespace BountyBot.Managers
             SaveBounties();
             return newBounty;
         }
+        /// <summary>
+        /// Rejects a proposed <see cref="Bounty"/>.
+        /// </summary>
+        /// <param name="id">The id of the <see cref="Bounty"/> to alter.</param>
+        /// <param name="reviewer">The discord id of the user that approved the <see cref="Bounty"/>.</param>
+        /// <returns>A <see cref="Bounty"/> object.</returns>
+        public static Bounty RejectBounty(int id, ulong reviewer)
+        {
+            LoadBounties();
+            Bounty rejectedBounty = new(id,proposedBounties.Where(x => x.ID == id).First(), reviewer, Bounty.StatusLevel.Rejected);
+            proposedBounties = proposedBounties.Where(x => x.ID != id).ToArray();
+            SaveBounties();
+            return rejectedBounty;
+        }
 
         // TEMPORARY Functions
         // Replace with dedicated Player Manager class for scaling purposes - May not be neccessary; Small audience
@@ -159,8 +183,8 @@ namespace BountyBot.Managers
         /// Loads all approved and proposed <see cref="Bounty"/> objects from the disk.
         /// </summary>
         /// <returns>A <see cref="ValueTuple"/>&lt;<see cref="Bounty"/>[], <see cref="Bounty"/>[]&gt; containing the <see cref="Array"/> from <see cref="Bounties"/> and <see cref="ProposedBounties"/>.</returns>
-        public static (Bounty[] bounties, Bounty[] proposedBounties) LoadBounties() =>
-            (bounties, proposedBounties) = JsonSerializer.Deserialize<BountyCollectionWrapper>(File.ReadAllText(recordPath)).AsTuple();
+        public static (Bounty[] bounties, Bounty[] proposedBounties, Bounty[] archivedBounties) LoadBounties() =>
+            (bounties, proposedBounties, archivedBounties) = JsonSerializer.Deserialize<BountyCollectionWrapper>(File.ReadAllText(recordPath)).AsTuple();
         /// <summary>
         /// <b>*Deprecated*</b> Loads all approved <see cref="Bounty"/> objects from the disk.
         /// </summary>
@@ -171,12 +195,12 @@ namespace BountyBot.Managers
         /// Saves all  approved and proposed <see cref="Bounty"/> objects to the disk.
         /// </summary>
         public static void SaveBounties() =>
-            File.WriteAllText(recordPath, JsonSerializer.Serialize<BountyCollectionWrapper>((bounties, proposedBounties)));
+            File.WriteAllText(recordPath, JsonSerializer.Serialize<BountyCollectionWrapper>((bounties, proposedBounties, archivedBounties)));
         /// <summary>
         /// Saves the specified approved and proposed <see cref="Bounty"/> objects to the disk.
         /// </summary>
         /// <param name="records">A <see cref="ValueTuple"/>&lt;<see cref="Bounty"/>[], <see cref="Bounty"/>[]&gt; containing the approved and proposed <see cref="Bounty"/> objects to save.</param>
-        public static void SaveBounties((Bounty[], Bounty[]) records) =>
+        public static void SaveBounties((Bounty[], Bounty[], Bounty[]) records) =>
             File.WriteAllText(recordPath, JsonSerializer.Serialize<BountyCollectionWrapper>(records));
     }
 }

@@ -15,7 +15,7 @@ namespace BountyBot.Entities
         /// <summary>
         /// Defines <see cref="Bounty"/> status levels.
         /// </summary>
-        public enum StatusLevel { Fail = -1, InProgress, Success, Proposed = 80, All = 99 }
+        public enum StatusLevel { None = -99, Fail = -1, InProgress, Success, Proposed = 80, Rejected, All = 99 }
         /// <summary>
         /// Defines a discord emoji <see cref="string"/> for each <see cref="StatusLevel"/>.
         /// </summary>
@@ -23,8 +23,11 @@ namespace BountyBot.Entities
             { StatusLevel.Success, ":white_check_mark:" },
             { StatusLevel.InProgress, ":hourglass_flowing_sand:" },
             { StatusLevel.Fail, ":x:" },
-            { StatusLevel.Proposed, "" },
-            { StatusLevel.All, "" } // Unused
+            { StatusLevel.Proposed, ":question:" },
+            // Unused
+            { StatusLevel.Rejected, "" },
+            { StatusLevel.All, "" },
+            { StatusLevel.None, "" }
         };
 
         // Fields
@@ -43,7 +46,7 @@ namespace BountyBot.Entities
         /// </summary>
         public int ID { get => id; }
         /// <summary>
-        /// The person targetted by the <see cref="Bounty"/>.
+        /// The person targeted by the <see cref="Bounty"/>.
         /// </summary>
         public string Target { get => target; }
         /// <summary>
@@ -51,7 +54,7 @@ namespace BountyBot.Entities
         /// </summary>
         public DateTime CreatedAt { get => createdAt; }
         /// <summary>
-        /// How much this <see cref="Bounty"/> is worth.
+        /// How many points this <see cref="Bounty"/> is worth.
         /// </summary>
         public int Value { get => value; }
         /// <summary>
@@ -104,9 +107,9 @@ namespace BountyBot.Entities
         public Bounty(int id, ulong author, string target, int value, StatusLevel status, params ulong[] assignedTo) =>
             (this.id, this.target, this.value, this.author, this.reviewer, this.status, this.assignedTo, createdAt) =
             (id, target, value, author, author, status, assignedTo, DateTime.Now);
-        public Bounty(int id, Bounty bounty, ulong reviewer) =>
-            (this.id, this.target, this.value, this.author, this.assignedTo, createdAt, status, this.reviewer) =
-            (id, bounty.target, bounty.value, bounty.author, bounty.AssignedTo, DateTime.Now, 0, reviewer);
+        public Bounty(int id, Bounty bounty, ulong reviewer, StatusLevel status = 0) =>
+            (this.id, this.target, this.value, this.author, this.assignedTo, createdAt, this.status, this.reviewer) =
+            (id, bounty.target, bounty.value, bounty.author, bounty.AssignedTo, DateTime.Now, status, reviewer);
 
         [JsonConstructor]
         public Bounty(int id, string target, DateTime createdAt, int value, StatusLevel status, ulong author, ulong reviewer, ulong[] assignedTo) =>
@@ -131,7 +134,7 @@ namespace BountyBot.Entities
         /// Sets <see cref="Status"/>.
         /// </summary>
         /// <param name="level">The <see cref="StatusLevel"/> to set the bounty at.</param>
-        public void Complete(StatusLevel level) => status = level;
+        public void SetStatus(StatusLevel level) => status = level;
         /// <summary>
         /// Unassigns a user from the bounty.
         /// </summary>

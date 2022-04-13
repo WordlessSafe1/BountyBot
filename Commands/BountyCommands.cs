@@ -23,7 +23,7 @@ namespace BountyBot.Commands
         {
             int id = (int)longId;
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-            CloseBounty(id, success);
+            SetBountyStatus(id, success);
             string responseString = "Bounty [" + id + "] has been marked as " + success.ToString();
             var response = new DiscordWebhookBuilder().WithContent(responseString);
             await ctx.EditResponseAsync(response);
@@ -96,6 +96,29 @@ namespace BountyBot.Commands
                 await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(responseString));
                 await (await ctx.Guild.GetMemberAsync(bounty.Author)).SendMessageAsync($"Your proposal (P-ID {id}) has been approved as bounty [{bounty.ID}]!");
                 Log.Out("BountySet", "Noted", ConsoleColor.Blue, "Bounty [" + bounty.ID + "] approved by " + ctx.User.Username + '#' + ctx.User.Discriminator + '.');
+            }
+            catch (Exception ex)
+            {
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(":x: **Error**: " + ex.Message));
+            }
+        }
+
+        [SlashCommand("Reject", "Reject a proposed bounty."), RequireRole("Committee of Bounties")]
+        public async Task RejectABounty(InteractionContext ctx, [Option("P-ID", "The ID of the proposed bounty.")] long id)
+        {
+            await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+            try
+            {
+                if (!ProposedBounties.Where(x => x.ID == id).Any())
+                {
+                    await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent($":x: **Error**: proposed bounty [{id}] not found."));
+                    return;
+                }
+                Bounty bounty = RejectBounty((int)id, ctx.User.Id);
+                string responseString = $"Bounty proposal (P-ID {bounty.ID}) has been rejected.";
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(responseString));
+                await (await ctx.Guild.GetMemberAsync(bounty.Author)).SendMessageAsync($"Your proposal (P-ID {id}) has been rejected.");
+                Log.Out("BountySet", "Noted", ConsoleColor.Blue, "Bounty [P" + bounty.ID + "] rejected by " + ctx.User.Username + '#' + ctx.User.Discriminator + '.');
             }
             catch (Exception ex)
             {
