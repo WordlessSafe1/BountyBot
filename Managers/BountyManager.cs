@@ -49,7 +49,7 @@ namespace BountyBot.Managers
                 LoadBountiesLegacy();
                 proposedBounties = Array.Empty<Bounty>();
                 archivedBounties = Array.Empty<Bounty>();
-                Log.Out("Init\\BntyMngr", "Info", ConsoleColor.DarkCyan, "Sucessfully loaded from legacy. Attempting to update records...");
+                Log.Out("Init\\BntyMngr", "Info", ConsoleColor.DarkCyan, "Sucessfully loaded from legacy. Attempting to update records...\r\n");
                 SaveBounties();
                 Log.Out("Init\\BntyMngr", "Info", ConsoleColor.DarkCyan, "Sucessfully converted records.");
             }
