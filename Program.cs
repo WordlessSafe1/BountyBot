@@ -67,6 +67,8 @@ public class Program
             // Oath Check (+,-)
             client.MessageReactionAdded += AcceptOath;
             client.MessageReactionRemoved += RenounceOath;
+            // Button Interactivity Deferration
+            client.ComponentInteractionCreated += async (s, e) => await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
             // Slash Command Errors
             slash.SlashCommandErrored += OnError;
         }
