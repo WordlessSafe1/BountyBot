@@ -7,6 +7,9 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Enums;
+using DSharpPlus.Interactivity.Extensions;
 
 namespace BountyBot;
 public class Program
@@ -52,11 +55,20 @@ public class Program
                 slash.RegisterCommands<Commands.BountyCommands>(guild.id);
             }
 
+        client.UseInteractivity(new()
+        {
+            PollBehaviour = PollBehaviour.KeepEmojis,
+            Timeout = TimeSpan.FromSeconds(30)
+        });
+
+
         // Event Listeners
         {
             // Oath Check (+,-)
             client.MessageReactionAdded += AcceptOath;
             client.MessageReactionRemoved += RenounceOath;
+            // Button Interactivity Deferration
+            client.ComponentInteractionCreated += async (s, e) => await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
             // Slash Command Errors
             slash.SlashCommandErrored += OnError;
         }
