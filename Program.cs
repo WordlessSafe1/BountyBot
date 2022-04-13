@@ -7,6 +7,9 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Enums;
+using DSharpPlus.Interactivity.Extensions;
 
 namespace BountyBot;
 public class Program
@@ -51,6 +54,13 @@ public class Program
                 slash.RegisterCommands<Commands.TopLevelCommands>(guild.id);
                 slash.RegisterCommands<Commands.BountyCommands>(guild.id);
             }
+
+        client.UseInteractivity(new()
+        {
+            PollBehaviour = PollBehaviour.KeepEmojis,
+            Timeout = TimeSpan.FromSeconds(30)
+        });
+
 
         // Event Listeners
         {
