@@ -74,7 +74,7 @@ namespace BountyBot.Commands
                 var res = await msg.WaitForSelectAsync("helpDropdown");
                 if (res.TimedOut)
                 {
-                    dropdown = new("helpDropdown.TO", "Select a submenu...", options, true);
+                    dropdown = new("helpDropdown.TO", "Navigate...", options, true);
                     await ctx.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embed.WithFooter("Timed out.")).AddComponents(dropdown));
                     return;
                 }
