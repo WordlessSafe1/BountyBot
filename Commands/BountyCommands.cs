@@ -136,6 +136,11 @@ internal class BountyCommands : ApplicationCommandModule
     {
         int count = 0;
         await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+        if (!ProposedBounties.Any())
+        {
+            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("No proposals to review!"));
+            return;
+        }
         foreach (Bounty proposal in ProposedBounties)
         {
             var embed = new DiscordEmbedBuilder().AddField(proposal.Title, proposal.Body);
@@ -153,6 +158,7 @@ internal class BountyCommands : ApplicationCommandModule
                 return;
             }
             count++;
+            await button.Result.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
             switch (button.Result.Id)
             {
                 case "approveProposal":
