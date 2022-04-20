@@ -21,7 +21,6 @@ namespace BountyBot.Commands;
 internal class BountyCommands : ApplicationCommandModule
 {
     private const string committeeRole = "Committee of Bounties";
-    private const int pageLength = 5;
 
     [SlashCommand("Close", "Closes a bounty by ID."), RequireRole(committeeRole)]
     public async Task CompleteBounty(InteractionContext ctx, [Option("BountyID", "The ID of the bounty to close.")] long longId, [Option("Status", "The status to set. Defaults to Success.")] StatusLevel success = StatusLevel.Success)
@@ -85,63 +84,18 @@ internal class BountyCommands : ApplicationCommandModule
         }
     }
 
-    [SlashCommand("Approve", "Approve a proposed bounty."), RequireRole(committeeRole)]
-    public async Task ApproveABounty(InteractionContext ctx, [Option("P-ID", "The ID of the proposed bounty.")] long id)
-    {
-        await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-        try
-        {
-            if (!ProposedBounties.Where(x => x.ID == id).Any())
-            {
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent($":x: **Error**: proposed bounty [{id}] not found."));
-                return;
-            }
-            Bounty bounty = ApproveBounty((int)id, ctx.User.Id);
-            string responseString = "A bounty (ID " + bounty.ID + ") has been placed on " + bounty.Target + " for " + bounty.Value + (bounty.AssignedTo.Length == 0 ? '.' : (". It has been assigned to " + string.Join(", ", bounty.AssignedTo.Select(x => "<@!" + x + ">")) + '.'));
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(responseString));
-            await (await ctx.Guild.GetMemberAsync(bounty.Author)).SendMessageAsync($"Your proposal (P-ID {id}) has been approved as bounty [{bounty.ID}]!");
-            Log.Out("BountySet", "Noted", ConsoleColor.Blue, "Bounty [" + bounty.ID + "] approved by " + ctx.User.Username + '#' + ctx.User.Discriminator + '.');
-        }
-        catch (Exception ex)
-        {
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(":x: **Error**: " + ex.Message));
-        }
-    }
-
-    [SlashCommand("Reject", "Reject a proposed bounty."), RequireRole(committeeRole)]
-    public async Task RejectABounty(InteractionContext ctx, [Option("P-ID", "The ID of the proposed bounty.")] long id)
-    {
-        await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-        try
-        {
-            if (!ProposedBounties.Where(x => x.ID == id).Any())
-            {
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent($":x: **Error**: proposed bounty [{id}] not found."));
-                return;
-            }
-            Bounty bounty = RejectBounty((int)id, ctx.User.Id);
-            string responseString = $"Bounty proposal (P-ID {bounty.ID}) has been rejected.";
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(responseString));
-            await (await ctx.Guild.GetMemberAsync(bounty.Author)).SendMessageAsync($"Your proposal (P-ID {id}) has been rejected.");
-            Log.Out("BountySet", "Noted", ConsoleColor.Blue, "Bounty [P" + bounty.ID + "] rejected by " + ctx.User.Username + '#' + ctx.User.Discriminator + '.');
-        }
-        catch (Exception ex)
-        {
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(":x: **Error**: " + ex.Message));
-        }
-    }
-
     [SlashCommand("Review", "Review proposed bounties"), RequireRole(committeeRole)]
-    public async Task ReviewProposals(InteractionContext ctx)
+    public async Task ReviewProposals(InteractionContext ctx, [Option("ID","The specific ID to review. Leave blank to review all.")] long bountyID = -1)
     {
         int count = 0;
         await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+        Bounty[] bounties = (bountyID >= 0) ? new[] { ProposedBounties.Where(x => x.ID == bountyID).First() } : ProposedBounties;
         if (!ProposedBounties.Any())
         {
             await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("No proposals to review!"));
             return;
         }
-        foreach (Bounty proposal in ProposedBounties)
+        foreach (Bounty proposal in bounties)
         {
             var embed = new DiscordEmbedBuilder().AddField(proposal.Title, proposal.Body);
             DiscordMessage msg = await ctx.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embed).AddComponents(new DiscordComponent[]
@@ -159,14 +113,17 @@ internal class BountyCommands : ApplicationCommandModule
             }
             count++;
             await button.Result.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+            Bounty bounty;
             switch (button.Result.Id)
             {
                 case "approveProposal":
-                    var bounty = ApproveBounty(proposal.ID, ctx.User.Id);
+                    bounty = ApproveBounty(proposal.ID, ctx.User.Id);
+                    Log.Out("BountySet", "Noted", ConsoleColor.Blue, $"Bounty [{bounty.ID}] approved by {ctx.User.Username}#{ctx.User.Discriminator}.");
                     await (await ctx.Guild.GetMemberAsync(proposal.Author)).SendMessageAsync($"Your proposal (P-ID {proposal.ID}) has been approved as bounty [{bounty.ID}]!");
                     continue;
                 case "rejectProposal":
-                    RejectBounty(proposal.ID, ctx.User.Id);
+                    bounty = RejectBounty(proposal.ID, ctx.User.Id);
+                    Log.Out("BountySet", "Noted", ConsoleColor.Blue, $"Bounty [P{bounty.ID}] rejected by {ctx.User.Username}#{ctx.User.Discriminator}.");
                     await (await ctx.Guild.GetMemberAsync(proposal.Author)).SendMessageAsync($"Your proposal (P-ID {proposal.ID}) has been rejected.");
                     continue;
                 case "skipProposal":
