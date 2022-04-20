@@ -108,5 +108,7 @@ public class Program
                 if (check is Attributes.RequireRoleAttribute)
                     await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(":x: **You do not have permission to run this command.**"));
         }
+        else
+            await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(":x: **Error**: " + e.Exception.Message));
     }
 }
