@@ -13,7 +13,7 @@ namespace BountyBot.Managers
     {
         const string HOST = "localhost";
         const string LOGIN = "postgres";
-        const string PWD = "PinPass7331"; // Read from/point to file
+        const string PWD = "INSERT_HERE"; // Read from/point to file
         const string DB = "testdb";
         const string CON_ARGS = $"Host={HOST};Username={LOGIN};Password={PWD};Database={DB}";
 
@@ -72,6 +72,7 @@ namespace BountyBot.Managers
         {
             List<NpgsqlParameter> paramList = new();
             var assignedTo = bounty.AssignedTo.Select(x => (BigInteger)x).ToArray();
+            paramList.Add(new("id", bounty.ID));
             paramList.Add(new("target", bounty.Target));
             paramList.Add(new("createdAt", bounty.CreatedAt));
             paramList.Add(new("value", bounty.Value));
@@ -104,6 +105,7 @@ namespace BountyBot.Managers
                     ((long[])                     reader[6]).Select(x => (ulong)x).ToArray()
                     ));
             }
+            con.Close();
             return bounties.ToArray();
         }
 
@@ -129,7 +131,56 @@ namespace BountyBot.Managers
                     ((long[])reader[5]).Select(x => (ulong)x).ToArray()
                     ));
             }
+            con.Close();
             return bounties.ToArray();
+        }
+
+        public static Bounty GetBountyByID(int id)
+        {
+            using NpgsqlConnection con = new(CON_ARGS);
+            con.Open();
+            using NpgsqlCommand cmd = new() { Connection = con };
+            cmd.Parameters.Add(new("id", id));
+            cmd.CommandText = "SELECT * FROM bounties WHERE id=@id LIMIT 1";
+            using var reader = cmd.ExecuteReader();
+            Bounty bounty = null;
+            if (reader.Read())
+            {
+                bounty = new(
+                    (int)reader[0],
+                    (string)reader[1],
+                    (DateTime)reader[2],
+                    (int)reader[3],
+                    (Bounty.StatusLevel)reader[4],
+                    (ulong)(long)reader[6],
+                    (ulong)(long)reader[7],
+                    ((long[])reader[5]).Select(x => (ulong)x).ToArray()
+                    );
+            }
+            con.Close();
+            return bounty;
+        }
+
+        public static Bounty UpdateBounty(int id, Bounty bounty)
+        {
+            using NpgsqlConnection con = new(CON_ARGS);
+            con.Open();
+            using NpgsqlCommand cmd = new() { Connection = con };
+
+            GetBountyParams(bounty).ForEach(x => cmd.Parameters.Add(x));
+
+            cmd.CommandText = "UPDATE bounties SET target = @target, " +
+                "createdAt = @createdAt, " +
+                "value = @value, " +
+                "status = @status, " +
+                "assignedTo = @assignedTo, " +
+                "author = @author, " +
+                "reviewer = @reviewer " +
+                "WHERE id = @id";
+
+            cmd.ExecuteNonQuery();
+            con.Close();
+            return bounty;
         }
     }
 }
