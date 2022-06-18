@@ -36,6 +36,7 @@ namespace BountyBot.Managers
         /// </summary>
         /// <exception cref="NotImplementedException"/>
         public static Bounty[] ArchivedBounties { get => throw new NotImplementedException(); }
+        public static Dictionary<int, Bounty> BountiesDB { get; set; } = new();
 
         // Load bounties from file
         public static void Init()
@@ -206,5 +207,15 @@ namespace BountyBot.Managers
         [Obsolete]
         public static void SaveBountiesLegacy((Bounty[], Bounty[], Bounty[]) records) =>
             File.WriteAllText(recordPath, JsonSerializer.Serialize<BountyCollectionWrapper>(records));
+        public static Bounty CreateBountyInDB(string target, int value, ulong author, params ulong[] assignedTo)
+        {
+            if (value <= 0)
+                throw new ArgumentOutOfRangeException(nameof(value));
+            var bounties = LoadBountiesFromDB();
+            Bounty bounty = DatabaseManager.AddBountyToDB(new(bounties.Count, author, target, value, assignedTo));
+            bounties.Add(bounty.ID, bounty);
+            return bounty;
+        }
+        public static Dictionary<int,Bounty> LoadBountiesFromDB() =>  BountiesDB = DatabaseManager.GetBounties().ToDictionary(x => x.ID);
     }
 }
