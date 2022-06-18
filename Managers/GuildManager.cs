@@ -17,10 +17,10 @@ namespace BountyBot.Managers
         {
             if (!File.Exists(recordPath))
                 throw new FileNotFoundException();
-            guilds = LoadGuilds(File.ReadAllLines(recordPath));
+            guilds = LoadGuildsLegacy(File.ReadAllLines(recordPath));
         }
 
-        private static (ulong, bool)[] LoadGuilds(string[] guildsConfig)
+        private static (ulong, bool)[] LoadGuildsLegacy(string[] guildsConfig)
         {
             string[] temp;
             List<(ulong, bool)> tmpGuilds = new();
@@ -43,5 +43,7 @@ namespace BountyBot.Managers
             }
             return tmpGuilds.ToArray();
         }
+
+        
     }
 }
