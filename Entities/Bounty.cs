@@ -31,7 +31,7 @@ namespace BountyBot.Entities
         };
 
         // Fields
-        private readonly int id;
+        private int id;
         private readonly string target;
         private readonly DateTime createdAt;
         private readonly int value;
@@ -44,7 +44,7 @@ namespace BountyBot.Entities
         /// <summary>
         /// The ID of the <see cref="Bounty"/>.
         /// </summary>
-        public int ID { get => id; }
+        public int ID { get => id; internal set => id = value; }
         /// <summary>
         /// The person targeted by the <see cref="Bounty"/>.
         /// </summary>
