@@ -11,11 +11,9 @@ namespace BountyBot.Managers
 {
     internal class DatabaseManager
     {
-        const string HOST = "localhost";
-        const string LOGIN = "postgres";
-        const string PWD = "INSERT_HERE"; // Read from/point to file
-        const string DB = "testdb";
-        const string CON_ARGS = $"Host={HOST};Username={LOGIN};Password={PWD};Database={DB}";
+        static readonly string conArgPath = System.IO.Directory.GetCurrentDirectory() + "\\psql.conf";
+        static readonly string CON_ARGS = System.IO.File.ReadAllText(conArgPath); 
+        
         /// <summary>
         /// Creates the bounties table in the database specified by <see cref="DB"/>.
         /// </summary>
