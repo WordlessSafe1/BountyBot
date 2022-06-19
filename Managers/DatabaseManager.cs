@@ -27,14 +27,7 @@ namespace BountyBot.Managers
             // Create Bounties table
             cmd.CommandText = "CREATE TABLE IF NOT EXISTS bounties(id SERIAL PRIMARY KEY, target VARCHAR(255), createdAt TIMESTAMP, value INT, status INT, assignedTo BIGINT[], author BIGINT, reviewer BIGINT)";
             cmd.ExecuteNonQuery();
-
-            //// Create Proposed Bounties table
-            //cmd.CommandText = "CREATE TABLE IF NOT EXISTS proposedBounties(pk SERIAL PRIMARY KEY, id INT, target VARCHAR(255), createdAt TIMESTAMP, value INT, status INT, assignedTo BIGINT[], author BIGINT, reviewer BIGINT)";
-            //cmd.ExecuteNonQuery();
-
-            //// Create Archived Bounties table
-            //cmd.CommandText = "CREATE TABLE IF NOT EXISTS archivedBounties(pk SERIAL PRIMARY KEY, id INT, target VARCHAR(255), createdAt TIMESTAMP, value INT, status INT, assignedTo BIGINT[], author BIGINT, reviewer BIGINT)";
-            //cmd.ExecuteNonQuery();
+            
             con.Close();
         }
         /// <summary>
@@ -50,7 +43,10 @@ namespace BountyBot.Managers
             cmd.ExecuteNonQuery();
             con.Close();
         }
-
+        /// <summary>
+        /// Inserts a bounty into the database asynchonously.
+        /// </summary>
+        /// <param name="bounty">The <see cref="Bounty"/> to insert into the database.</param>
         public static async void AddBountyToDBAsync(Bounty bounty)
         {
             using var con = new NpgsqlConnection(CON_ARGS);
@@ -64,6 +60,10 @@ namespace BountyBot.Managers
             await cmd.ExecuteNonQueryAsync();
             await con.CloseAsync();
         }
+        /// <summary>
+        /// Inserts a bounty into the database.
+        /// </summary>
+        /// <param name="bounty">The <see cref="Bounty"/> to insert into the database.</param>
         public static Bounty AddBountyToDB(Bounty bounty)
         {
             using var con = new NpgsqlConnection(CON_ARGS);
@@ -79,7 +79,11 @@ namespace BountyBot.Managers
             con.Close();
             return bounty;
         }
-
+        /// <summary>
+        /// Creates a set of <see cref="NpgsqlParameter"/> objects using a bounty.
+        /// </summary>
+        /// <param name="bounty">The <see cref="Bounty"/> used to generate parameters.</param>
+        /// <returns>An <see cref="Array"/> of <see cref="NpgsqlParameter"/> objects containing the values of <paramref name="bounty"/>.</returns>
         private static List<NpgsqlParameter> GetBountyParams(Bounty bounty)
         {
             List<NpgsqlParameter> paramList = new();
@@ -94,7 +98,10 @@ namespace BountyBot.Managers
             paramList.Add(new("reviewer", (BigInteger)bounty.Reviewer));
             return paramList;
         }
-
+        /// <summary>
+        /// Retreives all bounties from the database asynchonously.
+        /// </summary>
+        /// <returns>An <see cref="Array"/> of <see cref="Bounty"/> objects, ordered by <seealso cref="Bounty.ID"/>.</returns>
         public static async Task<Bounty[]> GetBountiesAsync()
         {
             using NpgsqlConnection con = new(CON_ARGS);
@@ -120,7 +127,10 @@ namespace BountyBot.Managers
             con.Close();
             return bounties.ToArray();
         }
-
+        /// <summary>
+        /// Retreives all bounties from the database.
+        /// </summary>
+        /// <returns>An <see cref="Array"/> of <see cref="Bounty"/> objects, ordered by <seealso cref="Bounty.ID"/>.</returns>
         public static Bounty[] GetBounties()
         {
             using NpgsqlConnection con = new(CON_ARGS);
@@ -146,7 +156,11 @@ namespace BountyBot.Managers
             con.Close();
             return bounties.ToArray();
         }
-
+        /// <summary>
+        /// Retreives a bounty from the database using <see cref="Bounty.ID"/>.
+        /// </summary>
+        /// <param name="id">The <see cref="Bounty.ID"/> of the bounty to retrieve.</param>
+        /// <returns>A <see cref="Bounty"/> object.</returns>
         public static Bounty GetBountyByID(int id)
         {
             using NpgsqlConnection con = new(CON_ARGS);
@@ -172,6 +186,11 @@ namespace BountyBot.Managers
             con.Close();
             return bounty;
         }
+        /// <summary>
+        /// Retreives all bounties from the database with the <see cref="Bounty.StatusLevel"/> of <paramref name="status"/>.
+        /// </summary>
+        /// <param name="status">The <see cref="Bounty.StatusLevel"/> to filter results by.</param>
+        /// <returns></returns>
         public static Bounty[] GetBountiesByStatus(Bounty.StatusLevel status)
         {
             using NpgsqlConnection con = new(CON_ARGS);
@@ -197,14 +216,18 @@ namespace BountyBot.Managers
             con.Close();
             return bounties.ToArray();
         }
-
+        /// <summary>
+        /// Retreives all bounties from the database assigned to <paramref name="player"/>.
+        /// </summary>
+        /// <param name="player">The UID of the player to search for.</param>
+        /// <returns>An <see cref="Array"/> of <see cref="Bounty"/> objects, ordered by <seealso cref="Bounty.ID"/>.</returns>
         public static Bounty[] GetBountiesAssignedToPlayer(ulong player)
         {
             using NpgsqlConnection con = new(CON_ARGS);
             con.Open();
             using NpgsqlCommand cmd = new() { Connection = con };
             cmd.Parameters.Add(new("player", (BigInteger)player));
-            cmd.CommandText = "SELECT * FROM bounties WHERE  @player=ANY(assignedTo)";
+            cmd.CommandText = "SELECT * FROM bounties WHERE  @player=ANY(assignedTo) ORDER BY id";
             using var reader = cmd.ExecuteReader();
             List<Bounty> bounties = new();
             while (reader.Read())
@@ -223,7 +246,12 @@ namespace BountyBot.Managers
             con.Close();
             return bounties.ToArray();
         }
-
+        /// <summary>
+        /// Updates a bounty in the database.
+        /// </summary>
+        /// <param name="id">The primary key of the entity to update.</param>
+        /// <param name="bounty">The updated <see cref="Bounty"/> entity.</param>
+        /// <returns>The updated <see cref="Bounty"/> entity.</returns>
         public static Bounty UpdateBounty(int id, Bounty bounty)
         {
             using NpgsqlConnection con = new(CON_ARGS);
