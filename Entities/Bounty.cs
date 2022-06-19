@@ -14,7 +14,7 @@ namespace BountyBot.Entities
         /// <summary>
         /// Defines <see cref="Bounty"/> status levels.
         /// </summary>
-        public enum StatusLevel { None = -99, Fail = -1, InProgress, Success, Proposed = 80, Rejected, All = 99 }
+        public enum StatusLevel { None = -99, Fail = -1, InProgress, Success, Active = 10, Proposed = 80, Rejected, All = 99 }
         /// <summary>
         /// Defines a discord emoji <see cref="string"/> for each <see cref="StatusLevel"/>.
         /// </summary>
@@ -24,8 +24,9 @@ namespace BountyBot.Entities
             { StatusLevel.Fail, ":x:" },
             { StatusLevel.Proposed, ":question:" },
             // Unused
-            { StatusLevel.Rejected, "" },
+            { StatusLevel.Rejected, ":-1:" },
             { StatusLevel.All, "" },
+            { StatusLevel.Active, "" },
             { StatusLevel.None, "" }
         };
 
@@ -107,8 +108,8 @@ namespace BountyBot.Entities
             (this.target, this.value, this.author, this.reviewer, this.status, this.assignedTo, createdAt) =
             (target, value, author, author, status, assignedTo, DateTime.Now);
         public Bounty(Bounty bounty, ulong reviewer, StatusLevel status = 0) =>
-            (this.target, this.value, this.author, this.assignedTo, createdAt, this.status, this.reviewer) =
-            (bounty.target, bounty.value, bounty.author, bounty.AssignedTo, DateTime.Now, status, reviewer);
+            (this.id, this.target, this.value, this.author, this.assignedTo, createdAt, this.status, this.reviewer) =
+            (bounty.id, bounty.target, bounty.value, bounty.author, bounty.AssignedTo, DateTime.Now, status, reviewer);
         public Bounty(string target, DateTime createdAt, int value, StatusLevel status, ulong author, ulong reviewer, ulong[] assignedTo) =>
             (this.target, this.createdAt, this.value, this.status, this.author, this.reviewer, this.assignedTo) =
             (target, createdAt, value, status, author, reviewer, assignedTo);
