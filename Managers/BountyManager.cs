@@ -138,7 +138,7 @@ namespace BountyBot.Managers
                 throw new ArgumentOutOfRangeException(nameof(value));
             return DatabaseManager.AddBountyToDB(new(author, target, value, assignedTo));
         }
-        public static void UpdateBounty(int id, Bounty bounty) => DatabaseManager.UpdateBounty(id, bounty);
+        public static Bounty UpdateBounty(int id, Bounty bounty) => DatabaseManager.UpdateBounty(id, bounty);
         public static Bounty UpdateBounty(Bounty bounty) => DatabaseManager.UpdateBounty(bounty.ID, bounty);
         private static Bounty[] GetBounties() =>  DatabaseManager.GetBounties();
         private static Bounty[] GetBountiesByStatus(Bounty.StatusLevel status) => DatabaseManager.GetBountiesByStatus(status);
