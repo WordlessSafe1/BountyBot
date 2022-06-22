@@ -70,10 +70,10 @@ internal class BountyCommands : ApplicationCommandModule
     {
         await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
             Bounty bounty = ProposeBounty(target, (int)bountyAmount, ctx.User.Id);
-            string responseString = "A bounty (P-ID " + bounty.ID + ") has been proposed against " + bounty.Target + " for " + bounty.Value + '.';
+            string responseString = "A bounty (ID " + bounty.ID + ") has been proposed against " + bounty.Target + " for " + bounty.Value + '.';
             await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(responseString));
             var userSnowflake = await ctx.Guild.GetMemberAsync(bounty.Author);
-            await userSnowflake.SendMessageAsync($"Your proposal for bounty (P-ID {bounty.ID}) against {bounty.Target} has been submitted!\r\nYou'll receive a DM once it's been reviewed!");
+            await userSnowflake.SendMessageAsync($"Your proposal for bounty (ID {bounty.ID}) against {bounty.Target} has been submitted!\r\nYou'll receive a DM once it's been reviewed!");
             Log.Out("BountyProposed", "Noted", ConsoleColor.Blue, "Bounty [" + bounty.ID + "] proposed by " + ctx.User.Username + '#' + ctx.User.Discriminator + '.');
     }
 
@@ -112,12 +112,12 @@ internal class BountyCommands : ApplicationCommandModule
                 case "approveProposal":
                     bounty = ApproveBounty(proposal.ID, ctx.User.Id);
                     Log.Out("BountySet", "Noted", ConsoleColor.Blue, $"Bounty [{bounty.ID}] approved by {ctx.User.Username}#{ctx.User.Discriminator}.");
-                    await (await ctx.Guild.GetMemberAsync(proposal.Author)).SendMessageAsync($"Your proposal (P-ID {proposal.ID}) has been approved as bounty [{bounty.ID}]!");
+                    await (await ctx.Guild.GetMemberAsync(proposal.Author)).SendMessageAsync($"Your proposal (ID {proposal.ID}) has been approved as bounty [{bounty.ID}]!");
                     continue;
                 case "rejectProposal":
                     bounty = RejectBounty(proposal.ID, ctx.User.Id);
                     Log.Out("BountySet", "Noted", ConsoleColor.Blue, $"Bounty [P{bounty.ID}] rejected by {ctx.User.Username}#{ctx.User.Discriminator}.");
-                    await (await ctx.Guild.GetMemberAsync(proposal.Author)).SendMessageAsync($"Your proposal (P-ID {proposal.ID}) has been rejected.");
+                    await (await ctx.Guild.GetMemberAsync(proposal.Author)).SendMessageAsync($"Your proposal (ID {proposal.ID}) has been rejected.");
                     continue;
                 case "skipProposal":
                     count--;
