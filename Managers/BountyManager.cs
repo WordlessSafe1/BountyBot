@@ -12,25 +12,17 @@ namespace BountyBot.Managers
 {
     static internal class BountyManager
     {
-        // Static Definitions
-        private static readonly string recordPath = Directory.GetCurrentDirectory() + "\\bounties.dat";
-
-        // Fields
-        private static Bounty[] bounties;
-        private static Bounty[] proposedBounties;
-        private static Bounty[] archivedBounties;
-
         // Properties
         /// <summary>
         /// Gets all approved <see cref="Bounty"/> objects.
         /// </summary>
         /// <returns>An <see cref="Array"/> of <see cref="Bounty"/> objects.</returns>
-        public static Bounty[] ProposedBounties { get => proposedBounties; }
+        public static Bounty[] ProposedBounties { get => GetBountiesByStatus(Bounty.StatusLevel.Proposed); }
         /// <summary>
         /// Gets all proposed <see cref="Bounty"/> objects.
         /// </summary>
         /// <returns>An <see cref="Array"/> of <see cref="Bounty"/> objects.</returns>
-        public static Bounty[] Bounties { get => bounties; }
+        public static Bounty[] Bounties { get => GetBounties(); }
         /// <summary>
         /// Reserved for future use.
         /// </summary>
@@ -40,41 +32,10 @@ namespace BountyBot.Managers
         // Load bounties from file
         public static void Init()
         {
-            if (!File.Exists(recordPath))
-                SaveBounties((Array.Empty<Bounty>(),Array.Empty<Bounty>(),Array.Empty<Bounty>()));
-            try { LoadBounties(); }
-            catch (JsonException)
-            {
-                Log.Out("Init\\BntyMngr", "Info", ConsoleColor.DarkCyan, "JSON format discrepancy detected. Attempting to load from legacy...");
-                LoadBountiesLegacy();
-                proposedBounties = Array.Empty<Bounty>();
-                archivedBounties = Array.Empty<Bounty>();
-                Log.Out("Init\\BntyMngr", "Info", ConsoleColor.DarkCyan, "Sucessfully loaded from legacy. Attempting to update records...\r\n");
-                SaveBounties();
-                Log.Out("Init\\BntyMngr", "Info", ConsoleColor.DarkCyan, "Sucessfully converted records.");
-            }
+            DatabaseManager.CreateTables();
         }
 
         // Fuctions
-        /// <summary>
-        /// Creates a <see cref="Bounty"/>, and adds it to <see cref="Bounties"/>.
-        /// </summary>
-        /// <param name="target">The username the <see cref="Bounty"/> targets.</param>
-        /// <param name="value">The amount of points the <see cref="Bounty"/> is worth.</param>
-        /// <param name="author">The discord id of the creator/proposer of the <see cref="Bounty"/>.</param>
-        /// <param name="assignedTo">The discord id(s) of the users assigned to the <see cref="Bounty"/>.</param>
-        /// <returns>The created <see cref="Bounty"/> object.</returns>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Bounty CreateBounty(string target, int value, ulong author, params ulong[] assignedTo)
-        {
-            if (value <= 0)
-                throw new ArgumentOutOfRangeException(nameof(value));
-            LoadBounties();
-            Bounty bounty = new(bounties.Length, author, target, value, assignedTo);
-            bounties = bounties.Append(bounty).ToArray();
-            SaveBounties();
-            return bounty;
-        }
         /// <summary>
         /// Selects a <see cref="Bounty"/> by <paramref name="id"/>, and sets the status to the value of <paramref name="success"/>.
         /// </summary>
@@ -82,9 +43,9 @@ namespace BountyBot.Managers
         /// <param name="success">The <see cref="Bounty.StatusLevel"/> to set the status of the <see cref="Bounty"/> to.</param>
         public static void SetBountyStatus(int id, Bounty.StatusLevel success)
         {
-            LoadBounties();
-            bounties[id].SetStatus(success);
-            SaveBounties();
+            Bounty bounty = DatabaseManager.GetBountyByID(id);
+            bounty.SetStatus(success);
+            UpdateBounty(bounty);
         }
         /// <summary>
         /// Assigns a <paramref name="user"/> to a <see cref="Bounty"/>.
@@ -93,9 +54,9 @@ namespace BountyBot.Managers
         /// <param name="user">The discord id of the <paramref name="user"/> to assign to the <see cref="Bounty"/>.</param>
         public static void AssignToBounty(int id, ulong user)
         {
-            LoadBounties();
-            bounties[id].AssignUser(user);
-            SaveBounties();
+            Bounty bounty = DatabaseManager.GetBountyByID(id);
+            bounty.AssignUser(user);
+            UpdateBounty(bounty);
         }
         /// <summary>
         /// Removes a <paramref name="user"/> from a <see cref="Bounty"/>.
@@ -105,9 +66,11 @@ namespace BountyBot.Managers
         /// <returns>A <see cref="bool"/> reflecting whether the <paramref name="user"/> was found on the <see cref="Bounty"/> identified by <paramref name="id"/>.</returns>
         public static bool RemoveFromBounty(int id, ulong user)
         {
-            LoadBounties();
-            bool success = bounties[id].RemoveUser(user);
-            SaveBounties();
+            Bounty bounty = DatabaseManager.GetBountyByID(id);
+            bounty.RemoveUser(user);
+            var success = bounty.RemoveUser(user);
+            if (success)
+                UpdateBounty(bounty);
             return success;
         }
         /// <summary>
@@ -118,12 +81,9 @@ namespace BountyBot.Managers
         /// <returns>A <see cref="Bounty"/> object.</returns>
         public static Bounty ApproveBounty(int id, ulong reviewer)
         {
-            LoadBounties();
-            Bounty approvedBounty = new(bounties.Length, proposedBounties.Where(x => x.ID == id).First(), reviewer);
-            proposedBounties = proposedBounties.Where(x => x.ID != id).ToArray();
-            bounties = bounties.Append(approvedBounty).ToArray();
-            SaveBounties();
-            return approvedBounty;
+            Bounty bounty = DatabaseManager.GetBountyByID(id);
+            bounty = new(bounty, reviewer);
+            return UpdateBounty(bounty);
         }
         /// <summary>
         /// Creates a <see cref="Bounty"/> proposal, and adds it to <see cref="ProposedBounties"/>.
@@ -138,13 +98,8 @@ namespace BountyBot.Managers
         {
             if (value <= 0)
                 throw new ArgumentOutOfRangeException(nameof(value));
-            if (proposedBounties is null)
-                throw new NullReferenceException("'proposedBounties' returned null.");
-            LoadBounties();
-            Bounty newBounty = new( (ProposedBounties.Any() ? proposedBounties.Last().ID + 1 : 0) , author, target, value, Bounty.StatusLevel.Proposed);
-            proposedBounties = proposedBounties.Append(newBounty).ToArray();
-            SaveBounties();
-            return newBounty;
+            Bounty bounty = new(author, target, value, Bounty.StatusLevel.Proposed);
+            return DatabaseManager.AddBountyToDB(bounty);
         }
         /// <summary>
         /// Rejects a proposed <see cref="Bounty"/>.
@@ -154,11 +109,9 @@ namespace BountyBot.Managers
         /// <returns>A <see cref="Bounty"/> object.</returns>
         public static Bounty RejectBounty(int id, ulong reviewer)
         {
-            LoadBounties();
-            Bounty rejectedBounty = new(id,proposedBounties.Where(x => x.ID == id).First(), reviewer, Bounty.StatusLevel.Rejected);
-            proposedBounties = proposedBounties.Where(x => x.ID != id).ToArray();
-            SaveBounties();
-            return rejectedBounty;
+            Bounty bounty = DatabaseManager.GetBountyByID(id);
+            Bounty rejectedBounty = new(bounty, reviewer, Bounty.StatusLevel.Rejected);
+            return UpdateBounty(rejectedBounty);
         }
 
         // TEMPORARY Functions
@@ -169,7 +122,7 @@ namespace BountyBot.Managers
         /// <param name="player">The discord id of the user to search for.</param>
         /// <returns>An <see cref="Array"/> of <see cref="Bounty"/> objects.</returns>
         public static Bounty[] GetBountiesByPlayer(ulong player) =>
-            Bounties.Where(x => x.AssignedTo.Contains(player)).ToArray();
+            DatabaseManager.GetBountiesAssignedToPlayer(player);
         /// <summary>
         /// Gets the sum of points from all completed <see cref="Bounty"/> objects to which the <paramref name="player"/> is assigned.
         /// </summary>
@@ -178,29 +131,16 @@ namespace BountyBot.Managers
         public static int GetPointsByPlayer(ulong player) =>
             GetBountiesByPlayer(player).Where(x => x.Status == Bounty.StatusLevel.Success).Select(x => x.Value).Sum();
 
-        // JSON Functions
-        /// <summary>
-        /// Loads all approved and proposed <see cref="Bounty"/> objects from the disk.
-        /// </summary>
-        /// <returns>A <see cref="ValueTuple"/>&lt;<see cref="Bounty"/>[], <see cref="Bounty"/>[]&gt; containing the <see cref="Array"/> from <see cref="Bounties"/> and <see cref="ProposedBounties"/>.</returns>
-        public static (Bounty[] bounties, Bounty[] proposedBounties, Bounty[] archivedBounties) LoadBounties() =>
-            (bounties, proposedBounties, archivedBounties) = JsonSerializer.Deserialize<BountyCollectionWrapper>(File.ReadAllText(recordPath)).AsTuple();
-        /// <summary>
-        /// <b>*Deprecated*</b> Loads all approved <see cref="Bounty"/> objects from the disk.
-        /// </summary>
-        /// <returns>An <see cref="Array"/> of <see cref="Bounty"/> objects.</returns>
-        public static Bounty[] LoadBountiesLegacy() =>
-            bounties = JsonSerializer.Deserialize<Bounty[]>(File.ReadAllText(recordPath).Replace("Completed","Status"));
-        /// <summary>
-        /// Saves all  approved and proposed <see cref="Bounty"/> objects to the disk.
-        /// </summary>
-        public static void SaveBounties() =>
-            File.WriteAllText(recordPath, JsonSerializer.Serialize<BountyCollectionWrapper>((bounties, proposedBounties, archivedBounties)));
-        /// <summary>
-        /// Saves the specified approved and proposed <see cref="Bounty"/> objects to the disk.
-        /// </summary>
-        /// <param name="records">A <see cref="ValueTuple"/>&lt;<see cref="Bounty"/>[], <see cref="Bounty"/>[]&gt; containing the approved and proposed <see cref="Bounty"/> objects to save.</param>
-        public static void SaveBounties((Bounty[], Bounty[], Bounty[]) records) =>
-            File.WriteAllText(recordPath, JsonSerializer.Serialize<BountyCollectionWrapper>(records));
+        // Database Functions
+        public static Bounty CreateBounty(string target, int value, ulong author, params ulong[] assignedTo)
+        {
+            if (value <= 0)
+                throw new ArgumentOutOfRangeException(nameof(value));
+            return DatabaseManager.AddBountyToDB(new(author, target, value, assignedTo));
+        }
+        public static Bounty UpdateBounty(int id, Bounty bounty) => DatabaseManager.UpdateBounty(id, bounty);
+        public static Bounty UpdateBounty(Bounty bounty) => DatabaseManager.UpdateBounty(bounty.ID, bounty);
+        private static Bounty[] GetBounties() =>  DatabaseManager.GetBounties();
+        private static Bounty[] GetBountiesByStatus(Bounty.StatusLevel status) => DatabaseManager.GetBountiesByStatus(status);
     }
 }

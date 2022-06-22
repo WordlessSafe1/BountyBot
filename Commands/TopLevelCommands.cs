@@ -23,12 +23,13 @@ namespace BountyBot.Commands
         private const string committeeRole = "Committee of Bounties";
 
         [SlashCommand("Bounties", "Shows a list of bounties.")]
-        public async Task ListBounties(InteractionContext ctx, [Option("Filter", "Status to filter entries by")] StatusLevel status = StatusLevel.All)
+        public async Task ListBounties(InteractionContext ctx, [Option("Filter", "Status to filter entries by")] StatusLevel status = StatusLevel.Active)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
             Bounty[] bounties = status switch
             {
                 StatusLevel.All => Bounties,
+                StatusLevel.Active => Bounties.Where(b => b.Status <= StatusLevel.Active).ToArray(),
                 StatusLevel.Proposed => ProposedBounties,
                 _ => Bounties.Where(x => x.Status == status).ToArray()
             };
