@@ -4,7 +4,6 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Linq;
 using DSharpPlus;
-using DSharpPlus.CommandsNext;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
