@@ -12,6 +12,7 @@ using static BountyBot.Entities.Bounty;
 using static BountyBot.Managers.BountyManager;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
+using Serilog;
 
 #pragma warning disable CA1822 // Mark members static - The SlashCommands API does not permit static command functions.
 
@@ -31,7 +32,7 @@ internal class BountyCommands : ApplicationCommandModule
         string responseString = "Bounty [" + id + "] has been marked as " + success.ToString();
         var response = new DiscordWebhookBuilder().WithContent(responseString);
         await ctx.EditResponseAsync(response);
-        Log.Out("BountyMod", "Noted", ConsoleColor.Blue, "Bounty [" + id + "] marked as " + success.ToString());
+        Log.Information("Bounty [{id}] has been marked as {status}", id, success.ToString());
     }
 
     [SlashCommand("Assign", "Assign a bounty to a user."), RequireRole(committeeRole)]
@@ -52,7 +53,7 @@ internal class BountyCommands : ApplicationCommandModule
         string responseString = "A bounty (ID " + bounty.ID + ") has been placed on " + bounty.Target + " for " + bounty.Value + (user == null ? '.' : (". It has been assigned to " + string.Join(", ", bounty.AssignedTo.Select(x => "<@!" + x + ">")) + '.'));
         var response = new DiscordWebhookBuilder().WithContent(responseString);
         await ctx.EditResponseAsync(response);
-        Log.Out("BountySet", "Noted", ConsoleColor.Blue, "Bounty [" + bounty.ID + "] created by " + ctx.User.Username + '#' + ctx.User.Discriminator + '.');
+        Log.Information("Bounty [{0}] has been created by {1}",bounty.ID, ctx.User.Username + '#' + ctx.User.Discriminator);
     }
 
     [SlashCommand("Unassign", "Unassign a user friom a bounty."), RequireRole(committeeRole)]
@@ -69,12 +70,12 @@ internal class BountyCommands : ApplicationCommandModule
     public async Task ProposeABounty(InteractionContext ctx, [Option("Target", "The person this bounty should target.")] string target, [Option("Value", "The amount this bounty is worth.")] long bountyAmount)
     {
         await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-            Bounty bounty = ProposeBounty(target, (int)bountyAmount, ctx.User.Id);
-            string responseString = "A bounty (ID " + bounty.ID + ") has been proposed against " + bounty.Target + " for " + bounty.Value + '.';
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(responseString));
-            var userSnowflake = await ctx.Guild.GetMemberAsync(bounty.Author);
-            await userSnowflake.SendMessageAsync($"Your proposal for bounty (ID {bounty.ID}) against {bounty.Target} has been submitted!\r\nYou'll receive a DM once it's been reviewed!");
-            Log.Out("BountyProposed", "Noted", ConsoleColor.Blue, "Bounty [" + bounty.ID + "] proposed by " + ctx.User.Username + '#' + ctx.User.Discriminator + '.');
+        Bounty bounty = ProposeBounty(target, (int)bountyAmount, ctx.User.Id);
+        string responseString = "A bounty (ID " + bounty.ID + ") has been proposed against " + bounty.Target + " for " + bounty.Value + '.';
+        await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(responseString));
+        var userSnowflake = await ctx.Guild.GetMemberAsync(bounty.Author);
+        await userSnowflake.SendMessageAsync($"Your proposal for bounty (ID {bounty.ID}) against {bounty.Target} has been submitted!\r\nYou'll receive a DM once it's been reviewed!");
+        Log.Information("Bounty [{0}] has been proposed by {1}", bounty.ID, ctx.User.Username + '#' + ctx.User.Discriminator);
     }
 
     [SlashCommand("Review", "Review proposed bounties"), RequireRole(committeeRole)]
@@ -111,12 +112,12 @@ internal class BountyCommands : ApplicationCommandModule
             {
                 case "approveProposal":
                     bounty = ApproveBounty(proposal.ID, ctx.User.Id);
-                    Log.Out("BountySet", "Noted", ConsoleColor.Blue, $"Bounty [{bounty.ID}] approved by {ctx.User.Username}#{ctx.User.Discriminator}.");
+                    Log.Information("Bounty [{0}] has been approved by {1}", proposal.ID, ctx.User.Username + '#' + ctx.User.Discriminator);
                     await (await ctx.Guild.GetMemberAsync(proposal.Author)).SendMessageAsync($"Your proposal (ID {proposal.ID}) has been approved as bounty [{bounty.ID}]!");
                     continue;
                 case "rejectProposal":
                     bounty = RejectBounty(proposal.ID, ctx.User.Id);
-                    Log.Out("BountySet", "Noted", ConsoleColor.Blue, $"Bounty [P{bounty.ID}] rejected by {ctx.User.Username}#{ctx.User.Discriminator}.");
+                    Log.Information("Bounty [{0}] has been rejected by {1}", proposal.ID, ctx.User.Username + '#' + ctx.User.Discriminator);
                     await (await ctx.Guild.GetMemberAsync(proposal.Author)).SendMessageAsync($"Your proposal (ID {proposal.ID}) has been rejected.");
                     continue;
                 case "skipProposal":

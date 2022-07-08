@@ -9,6 +9,8 @@ using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.Extensions;
+using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace BountyBot;
 public class Program
@@ -23,6 +25,14 @@ public class Program
     {
         if (args.Contains("DEBUG"))
             debugging = true;
+        
+        const string templateString = "[{Timestamp:yyyy-MM-dd HH:mm:ss zzz}] [{Level:u4}] {Message:lj}{NewLine}{Exception}";
+        
+        Log.Logger = new LoggerConfiguration()
+            .WriteTo.Console(outputTemplate: templateString)
+            .WriteTo.File("logs\\log.txt", rollingInterval: RollingInterval.Day, flushToDiskInterval: TimeSpan.FromMinutes(1), shared: true, outputTemplate: templateString)
+            .CreateLogger();
+        
         if (!File.Exists(tokenPath))
             throw new FileNotFoundException("Please add the bot token to " + tokenPath);
         botToken = File.ReadAllText(tokenPath);
@@ -37,7 +47,8 @@ public class Program
         {
             Token = botToken,
             TokenType = TokenType.Bot,
-            Intents = DiscordIntents.All
+            Intents = DiscordIntents.All,
+            LoggerFactory = new LoggerFactory().AddSerilog()
         });
 
         var slash = client.UseSlashCommands();
@@ -84,7 +95,7 @@ public class Program
         if (user.Roles.Contains(role))
             return;
         await user.GrantRoleAsync(role);
-        Log.Out("GrantRole", "Acted", ConsoleColor.DarkCyan, "Granted Bounty Hunter Role to " + user.Username + '#' + user.Discriminator + '.');
+        Log.Information("User {0} has accepted the oath", user.Username + '#' + user.Discriminator);
     }
 
     public static async Task RenounceOath(DiscordClient _, DSharpPlus.EventArgs.MessageReactionRemoveEventArgs e)
@@ -96,7 +107,7 @@ public class Program
         if (!user.Roles.Contains(role))
             return;
         await user.RevokeRoleAsync(role);
-        Log.Out("RevokeRole", "Acted", ConsoleColor.DarkCyan, "Revoked Bounty Hunter Role from " + user.Username + '#' + user.Discriminator + '.');
+        Log.Information("User {0} has renounced the oath", user.Username + '#' + user.Discriminator);
     }
 
     public static async Task OnError(SlashCommandsExtension s, DSharpPlus.SlashCommands.EventArgs.SlashCommandErrorEventArgs e)
