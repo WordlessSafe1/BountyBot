@@ -48,7 +48,7 @@ public class Program
             Token = botToken,
             TokenType = TokenType.Bot,
             Intents = DiscordIntents.All,
-            LoggerFactory = new().AddSerilog();
+            LoggerFactory = new().AddSerilog()
         });
 
         var slash = client.UseSlashCommands();
