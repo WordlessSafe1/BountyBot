@@ -43,14 +43,12 @@ public class Program
 
     static async Task MainAsync(string[] args)
     {
-        var logFactory = new LoggerFactory().AddSerilog();     
-        
         DiscordClient client = new(new DiscordConfiguration()
         {
             Token = botToken,
             TokenType = TokenType.Bot,
             Intents = DiscordIntents.All,
-            LoggerFactory = logFactory
+            LoggerFactory = new().AddSerilog();
         });
 
         var slash = client.UseSlashCommands();
