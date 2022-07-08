@@ -19,8 +19,8 @@ public class Program
     static string botToken;
     static readonly string tokenPath = Directory.GetCurrentDirectory() + "\\token.tok";
 
-    const ulong bountyHunterRoleID = 947225561619660860;//944815621865111632;
-    const ulong oathMsgId = 990482515070439436;//947299195289731113;
+    const ulong bountyHunterRoleID = 944815621865111632;
+    const ulong oathMsgId = 947299195289731113;
     static void Main(string[] args)
     {
         if (args.Contains("DEBUG"))
