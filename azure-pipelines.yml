@@ -13,7 +13,7 @@ pool:
 
 variables:
   solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
+  buildPlatform: 'win-x64'
   buildConfiguration: 'Release'
 
 steps:
@@ -23,17 +23,25 @@ steps:
   inputs:
     restoreSolution: '$(solution)'
 
-- task: VSBuild@1
+- task: DotNetCoreCLI@2
   inputs:
-    solution: '$(solution)'
-    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(Build.artifactStagingDirectory)//"'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+    command: 'build'
+    projects: '**/*.csproj'
+    arguments: '--configuration $(buildConfiguration)'
 
-- task: CopyFiles@2
+- task: DotNetCoreCLI@2
   inputs:
-    sourceFolder: 'bin\Release\net6.0\'
-    targetFolder: '$(Build.ArtifactStagingDirectory)'
+    command: 'publish'
+    publishWebProjects: false
+    projects: '**/*.csproj'
+    arguments: '-r $(buildPlatform) -p:PublishSingleFile=true --self-contained true --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: false
+    modifyOutputPath: false
+
+- task: DeleteFiles@1
+  inputs:
+    SourceFolder: '$(Build.ArtifactStagingDirectory)'
+    Contents: '*.pdb'
 
 - task: VSTest@2
   inputs:
