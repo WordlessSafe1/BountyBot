@@ -49,9 +49,9 @@ namespace BountyBot.Attributes
         public RequireRolesAttribute(CheckMethod checkMethod, params ulong[] roleIDs) =>
             (this.roleIDs, this.checkMethod) = (roleIDs, checkMethod);
         public RequireRolesAttribute(params string roleNames) =>
-            (this.checkMethod, this.roleNames) = (CheckMethod.All, roleNames)
+            (this.checkMethod, this.roleNames) = (CheckMethod.All, roleNames);
         public RequireRolesAttribute(params ulong roleIDs) =>
-            (this.checkMethod, this.roleIDs) = (CheckMethod.All, roleIDs)
+            (this.checkMethod, this.roleIDs) = (CheckMethod.All, roleIDs);
 
 #pragma warning disable CS1998
         public override async Task<bool> ExecuteChecksAsync(InteractionContext ctx)
