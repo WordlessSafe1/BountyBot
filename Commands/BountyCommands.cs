@@ -23,7 +23,7 @@ internal class BountyCommands : ApplicationCommandModule
 {
     private const string committeeRole = "Committee of Bounties";
 
-    [SlashCommand("Close", "Closes a bounty by ID."), RequireRole(committeeRole)]
+    [SlashCommand("Close", "Closes a bounty by ID."), RequireRoles(committeeRole)]
     public async Task CompleteBounty(InteractionContext ctx, [Option("BountyID", "The ID of the bounty to close.")] long longId, [Option("Status", "The status to set. Defaults to Success.")] StatusLevel success = StatusLevel.Success)
     {
         int id = (int)longId;
@@ -35,7 +35,7 @@ internal class BountyCommands : ApplicationCommandModule
         Log.Information("Bounty [{id}] has been marked as {status}", id, success.ToString());
     }
 
-    [SlashCommand("Assign", "Assign a bounty to a user."), RequireRole(committeeRole)]
+    [SlashCommand("Assign", "Assign a bounty to a user."), RequireRoles(committeeRole)]
     public async Task AssignBounty(InteractionContext ctx, [Option("BountyID", "The ID of the bounty to assign.")] long bountyID, [Option("User", "The user to assign to the bounty.")] DiscordUser user)
     {
         await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
@@ -45,7 +45,7 @@ internal class BountyCommands : ApplicationCommandModule
         await ctx.EditResponseAsync(response);
     }
 
-    [SlashCommand("Set", "Set a bounty on a player"), RequireRole(committeeRole)]
+    [SlashCommand("Set", "Set a bounty on a player"), RequireRoles(committeeRole)]
     public async Task SetBounty(InteractionContext ctx, [Option("Target", "The person this bounty should target.")] string target, [Option("Value", "The amount this bounty is worth.")] long bountyAmount, [Option("User", "The user to assign to the bounty.")] DiscordUser user = null)
     {
         await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
@@ -56,7 +56,7 @@ internal class BountyCommands : ApplicationCommandModule
         Log.Information("Bounty [{0}] has been created by {1}",bounty.ID, ctx.User.Username + '#' + ctx.User.Discriminator);
     }
 
-    [SlashCommand("Unassign", "Unassign a user friom a bounty."), RequireRole(committeeRole)]
+    [SlashCommand("Unassign", "Unassign a user friom a bounty."), RequireRoles(committeeRole)]
     public async Task UnassignBounty(InteractionContext ctx, [Option("BountyID", "The ID of the affected bounty.")] long bountyID, [Option("User", "The user to assign to the bounty.")] DiscordUser user)
     {
         await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
@@ -78,7 +78,7 @@ internal class BountyCommands : ApplicationCommandModule
         Log.Information("Bounty [{0}] has been proposed by {1}", bounty.ID, ctx.User.Username + '#' + ctx.User.Discriminator);
     }
 
-    [SlashCommand("Review", "Review proposed bounties"), RequireRole(committeeRole)]
+    [SlashCommand("Review", "Review proposed bounties"), RequireRoles(committeeRole)]
     public async Task ReviewProposals(InteractionContext ctx, [Option("ID","The specific ID to review. Leave blank to review all.")] long bountyID = -1)
     {
         int count = 0;
