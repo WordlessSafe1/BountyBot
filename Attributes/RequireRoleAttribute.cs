@@ -73,7 +73,7 @@ namespace BountyBot.Attributes
         private static bool GenCheckAll<T>(IEnumerable<T> expected, IEnumerable<T> actual) =>
             expected.All(actual.Contains);
         private static bool GenCheckAny<T>(IEnumerable<T> expected, IEnumerable<T> actual) =>
-            actual.Where(x => expected.Contains(x)).Any();
+            expected.Any(actual.Contains);
         private static bool GenCheckExactly<T>(IEnumerable<T> expected, IEnumerable<T> actual) =>
             expected.All(actual.Contains) && actual.Count() == expected.Count();
         private static bool GenCheckNone<T>(IEnumerable<T> expected, IEnumerable<T> actual) =>
