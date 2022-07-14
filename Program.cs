@@ -115,7 +115,7 @@ public class Program
         if (e.Exception is SlashExecutionChecksFailedException slex)
         {
             foreach (var check in slex.FailedChecks)
-                if (check is Attributes.RequireRoleAttribute)
+                if (check is Attributes.RequireRolesAttribute)
                     await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(":x: **You do not have permission to run this command.**"));
         }
         else
