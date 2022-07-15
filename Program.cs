@@ -116,9 +116,14 @@ public class Program
         {
             foreach (var check in slex.FailedChecks)
                 if (check is Attributes.RequireRolesAttribute)
-                    await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(":x: **You do not have permission to run this command.**"));
+                    await e.Context.CreateResponseAsync(":x: **You do not have permission to run this command.**", true);
         }
         else
-            await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(":x: **Error**: " + e.Exception.Message));
+            try { await e.Context.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent(":x: **Error**: " + e.Exception.Message)); }
+            catch
+            {
+                await e.Context.DeleteResponseAsync();
+                await e.Context.FollowUpAsync(new DiscordFollowupMessageBuilder().AsEphemeral().WithContent(":x: **Error**: " + e.Exception.Message));
+            }
     }
 }
