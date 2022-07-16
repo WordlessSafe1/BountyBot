@@ -39,8 +39,8 @@ steps:
       cd $(Build.ArtifactStagingDirectory)
       ren bountybot.exe bountybot-$(buildPlatform).exe
       echo "$(buildConfiguration)" > a.txt
-      Write-Host "##vso[task.setvariable variable={buildConfiguration}]{Debug}"
-      echo "$(buildConfiguration)" > a.txt
+      Write-Host "##vso[task.setvariable variable=buildConfiguration]Debug"
+      echo "$(buildConfiguration)" > c.txt
 
 - task: DeleteFiles@1
   inputs:
