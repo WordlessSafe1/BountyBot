@@ -32,6 +32,11 @@ steps:
     zipAfterPublish: false
     modifyOutputPath: false
 
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: 'ren bountybot.exe bountybot-$(buildPlatform).exe'
+
 - task: DeleteFiles@1
   inputs:
     SourceFolder: '$(Build.ArtifactStagingDirectory)'
