@@ -81,6 +81,7 @@ namespace BountyBot.Entities
         /// </summary>
         /// <returns>A <see cref="string"/>.</returns>
         public string Title { get => $"[{ID}] {Icon} {Target}"; }
+        public string PlainTitle { get => $"[{ID}] {Target}"; }
         /// <summary>
         /// Gets the <see cref="string"/> used in the body of an embed.
         /// </summary>
