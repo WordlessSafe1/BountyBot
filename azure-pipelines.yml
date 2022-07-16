@@ -32,7 +32,7 @@ steps:
     - script: |
         echo ##vso[task.setvariable variable=buildConfiguration]Release
         echo ##vso[task.setvariable variable=buildPlatform]win-x64
-      displayName: 'Set Build Platform/Configuration (Winx64-Release)'
+      displayName: '(Winx64-Release) Set Build Platform/Configuration'
 
 
 
@@ -74,7 +74,46 @@ steps:
     - script: |
         echo ##vso[task.setvariable variable=buildConfiguration]Release
         echo ##vso[task.setvariable variable=buildPlatform]win-x86
-      displayName: 'Set Build Platform/Configuration (Winx86-Release)'
+      displayName: '(Winx86-Release) Set Build Platform/Configuration'
+
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'publish'
+        publishWebProjects: false
+        projects: '**/*.csproj'
+        arguments: '-r $(buildPlatform) -p:PublishSingleFile=true --self-contained true --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+        zipAfterPublish: false
+        modifyOutputPath: false
+
+    - script: |
+        cd $(Build.ArtifactStagingDirectory)
+        ren bountybot.exe bountybot-$(buildPlatform).exe
+      displayName: 'Rename Binary'
+
+    - task: DeleteFiles@1
+      inputs:
+        SourceFolder: '$(Build.ArtifactStagingDirectory)'
+        Contents: '*.pdb'
+
+    - task: VSTest@2
+      inputs:
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: drop
+      condition: or( eq(variables.ForcePublish, 'true'), eq(variables.Build.Reason, 'IndividualCI'))
+
+######################
+##     Linux-x64    ##
+######################
+
+    - script: |
+        echo ##vso[task.setvariable variable=buildConfiguration]Release
+        echo ##vso[task.setvariable variable=buildPlatform]linux-x64
+      displayName: '(Linux-x64-Release) Set Build Platform/Configuration'
 
     - task: DotNetCoreCLI@2
       inputs:
