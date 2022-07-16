@@ -35,7 +35,9 @@ steps:
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
-    script: 'echo "Hello World" > test.txt'
+    script: |
+      cd $(Build.ArtifactStagingDirectory)
+      ren bountybot.exe bountybot-$(buildPlatform).exe
 
 - task: DeleteFiles@1
   inputs:
