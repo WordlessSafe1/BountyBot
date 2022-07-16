@@ -16,21 +16,25 @@ variables:
   value: '**/*.sln'
 - name: buildConfiguration
 - name: buildPlatform
-stages:
-- stage: 'A'
-  jobs:
-  - job: 'Winx64_Release'
-    steps:
-    - script: |
-        echo ##vso[task.setvariable variable=buildConfiguration]Release
-        echo ##vso[task.setvariable variable=buildPlatform]win-x64
-      displayName: 'Set Build Platform/Configuration'
+
+steps:
+
+######################
+##       Winx64     ##
+######################
 
     - task: NuGetToolInstaller@1
 
     - task: NuGetCommand@2
       inputs:
         restoreSolution: '$(solution)'
+
+    - script: |
+        echo ##vso[task.setvariable variable=buildConfiguration]Release
+        echo ##vso[task.setvariable variable=buildPlatform]win-x64
+      displayName: 'Set Build Platform/Configuration (Winx64-Release)'
+
+
 
     - task: DotNetCoreCLI@2
       inputs:
@@ -61,18 +65,15 @@ stages:
         pathToPublish: '$(Build.ArtifactStagingDirectory)'
         artifactName: drop
 
-  - job: 'Winx86_Release'
-    steps:
+
+######################
+##       Winx86     ##
+######################
+
     - script: |
         echo ##vso[task.setvariable variable=buildConfiguration]Release
         echo ##vso[task.setvariable variable=buildPlatform]win-x86
-      displayName: 'Set Build Platform/Configuration'
-
-    - task: NuGetToolInstaller@1
-
-    - task: NuGetCommand@2
-      inputs:
-        restoreSolution: '$(solution)'
+      displayName: 'Set Build Platform/Configuration (Winx86-Release)'
 
     - task: DotNetCoreCLI@2
       inputs:
