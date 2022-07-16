@@ -22,8 +22,8 @@ stages:
   - job: 'Build'
     steps:
     - script: |
-        echo "##vso[task.setvariable variable=buildConfiguration]Release"
-        echo "##vso[task.setvariable variable=buildPlatform]win-x64"
+        echo ##vso[task.setvariable variable=buildConfiguration]Release
+        echo ##vso[task.setvariable variable=buildPlatform]win-x64
       displayName: 'Set Build Platform/Configuration'
     - script: 'echo $(buildPlatform) $(buildConfiguration)'
 
