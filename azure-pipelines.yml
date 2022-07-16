@@ -25,6 +25,7 @@ stages:
         echo "##vso[task.setvariable variable=buildConfiguration]Release"
         echo "##vso[task.setvariable variable=buildPlatform]win-x64"
       displayName: 'Set Build Platform/Configuration'
+    - script: 'echo $(buildPlatform) $(buildConfiguration)'
 
     - task: NuGetToolInstaller@1
 
