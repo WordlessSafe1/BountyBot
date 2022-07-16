@@ -15,47 +15,48 @@ variables:
 - name: solution
   value: '**/*.sln'
 - name: buildConfiguration
-  value: Release
 - name: buildPlatform
-  value: 'win-x64'
+stages:
+- stage: 'A'
+  jobs:
+  - job: 'Build'
+    steps:
+    - script: |
+        echo "##vso[task.setvariable variable=buildConfiguration]Release"
+        echo "##vso[task.setvariable variable=buildPlatform]win-x64"
+      displayName: 'Set Build Platform/Configuration'
 
-steps:
+    - task: NuGetToolInstaller@1
 
-- task: NuGetToolInstaller@1
+    - task: NuGetCommand@2
+      inputs:
+        restoreSolution: '$(solution)'
 
-- task: NuGetCommand@2
-  inputs:
-    restoreSolution: '$(solution)'
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'publish'
+        publishWebProjects: false
+        projects: '**/*.csproj'
+        arguments: '-r $(buildPlatform) -p:PublishSingleFile=true --self-contained true --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+        zipAfterPublish: false
+        modifyOutputPath: false
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'publish'
-    publishWebProjects: false
-    projects: '**/*.csproj'
-    arguments: '-r $(buildPlatform) -p:PublishSingleFile=true --self-contained true --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-    zipAfterPublish: false
-    modifyOutputPath: false
+    - script: |
+        cd $(Build.ArtifactStagingDirectory)
+        ren bountybot.exe bountybot-$(buildPlatform).exe
+      displayName: 'Rename Binary'
 
+    - task: DeleteFiles@1
+      inputs:
+        SourceFolder: '$(Build.ArtifactStagingDirectory)'
+        Contents: '*.pdb'
 
-- script: |
-    cd $(Build.ArtifactStagingDirectory)
-    ren bountybot.exe bountybot-$(buildPlatform).exe
+    - task: VSTest@2
+      inputs:
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
 
-- script: echo "$(buildConfiguration)"
-- script: echo "##vso[task.setvariable variable=buildConfiguration]Debug"
-- script: echo "$(buildConfiguration)"
-
-- task: DeleteFiles@1
-  inputs:
-    SourceFolder: '$(Build.ArtifactStagingDirectory)'
-    Contents: '*.pdb'
-
-- task: VSTest@2
-  inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-
-- task: PublishBuildArtifacts@1
-  inputs:
-    pathToPublish: '$(Build.ArtifactStagingDirectory)'
-    artifactName: drop
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathToPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: drop
