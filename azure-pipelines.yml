@@ -104,4 +104,4 @@ steps:
       inputs:
         pathToPublish: '$(Build.ArtifactStagingDirectory)'
         artifactName: drop
-      condition: or( eq(variables.ForcePublish, 'true'), eq(Build.Reason, 'IndividualCI'))
+      condition: or( eq(variables.ForcePublish, 'true'), eq(variables.Build.Reason, 'IndividualCI'))
