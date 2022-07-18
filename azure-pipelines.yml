@@ -19,7 +19,6 @@ variables:
 
 stages:
 - stage: Build
-  condition: not(and(eq(variables.Build.SourceBranchName, 'master'), eq(variables.Build.Reason, 'IndividualCI')))
   jobs:
   - job: Build
     steps:
