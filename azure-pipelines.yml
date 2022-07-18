@@ -40,7 +40,7 @@ stages:
 
 
 - stage: Publish
-  condition: or(eq(variables.ForcePublish, 'true'), eq(variables.Build.SourceBranchName, 'master'))
+  #condition: or(eq(variables.ForcePublish, 'true'), eq(variables.Build.SourceBranchName, 'master'))
   jobs:
   - job: Publish
     steps:
@@ -154,4 +154,4 @@ stages:
       inputs:
         pathToPublish: '$(Build.ArtifactStagingDirectory)'
         artifactName: drop
-      condition: or( eq(variables.ForcePublish, 'true'), eq(variables.Build.Reason, 'IndividualCI'))
+      #condition: or( eq(variables.ForcePublish, 'true'), eq(variables.Build.Reason, 'IndividualCI'))
