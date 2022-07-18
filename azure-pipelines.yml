@@ -40,7 +40,7 @@ stages:
 
 
 - stage: Publish
-  condition: and(eq(variables.Build.SourceBranchName, 'master'), eq(variables.Build.Reason, 'IndividualCI'))
+  condition: or(eq(variables.ForcePublish, 'true'), and(eq(variables.Build.SourceBranchName, 'master'), eq(variables.Build.Reason, 'IndividualCI')))
   jobs:
   - job: Publish
     steps:
