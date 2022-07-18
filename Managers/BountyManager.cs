@@ -67,7 +67,6 @@ namespace BountyBot.Managers
         public static bool RemoveFromBounty(int id, ulong user)
         {
             Bounty bounty = DatabaseManager.GetBountyByID(id);
-            bounty.RemoveUser(user);
             var success = bounty.RemoveUser(user);
             if (success)
                 UpdateBounty(bounty);

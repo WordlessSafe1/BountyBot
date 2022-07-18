@@ -8,6 +8,7 @@ using DSharpPlus.SlashCommands;
 using DSharpPlus.Entities;
 using BountyBot.Attributes;
 using BountyBot.Entities;
+using BountyBot.Commands.Providers;
 using static BountyBot.Entities.Bounty;
 using static BountyBot.Managers.BountyManager;
 using DSharpPlus.Interactivity;
@@ -23,11 +24,19 @@ internal class BountyCommands : ApplicationCommandModule
 {
     private const string committeeRole = "Committee of Bounties";
 
-    [SlashCommand("Close", "Closes a bounty by ID."), RequireRole(committeeRole)]
-    public async Task CompleteBounty(InteractionContext ctx, [Option("BountyID", "The ID of the bounty to close.")] long longId, [Option("Status", "The status to set. Defaults to Success.")] StatusLevel success = StatusLevel.Success)
+    [SlashCommand("Close", "Closes a bounty by ID."), RequireRoles(committeeRole)]
+    public async Task CompleteBounty(InteractionContext ctx,
+        [Autocomplete(typeof(BountyProvider))]
+        [Option("BountyID", "The ID of the bounty to close.")] string idString, 
+        [Option("Status", "The status to set. Defaults to Success.")] StatusLevel success = StatusLevel.Success)
     {
-        int id = (int)longId;
         await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+        int id;
+        try { id = int.Parse(idString); }
+        catch (FormatException e)
+        {
+            throw new ArgumentException("Invalid ID.", e);
+        }
         SetBountyStatus(id, success);
         string responseString = "Bounty [" + id + "] has been marked as " + success.ToString();
         var response = new DiscordWebhookBuilder().WithContent(responseString);
@@ -35,18 +44,30 @@ internal class BountyCommands : ApplicationCommandModule
         Log.Information("Bounty [{id}] has been marked as {status}", id, success.ToString());
     }
 
-    [SlashCommand("Assign", "Assign a bounty to a user."), RequireRole(committeeRole)]
-    public async Task AssignBounty(InteractionContext ctx, [Option("BountyID", "The ID of the bounty to assign.")] long bountyID, [Option("User", "The user to assign to the bounty.")] DiscordUser user)
+    [SlashCommand("Assign", "Assign a bounty to a user."), RequireRoles(committeeRole)]
+    public async Task AssignBounty(InteractionContext ctx,
+        [Autocomplete(typeof(BountyProvider))]
+        [Option("BountyID", "The ID of the bounty to assign.")] string idString,
+        [Option("User", "The user to assign to the bounty.")] DiscordUser user)
     {
         await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-        AssignToBounty((int)bountyID, user.Id);
-        string responseString = "Assigned user " + user.Mention + " to bounty [" + bountyID + "].";
+        int id;
+        try { id = int.Parse(idString); }
+        catch (FormatException e)
+        {
+            throw new ArgumentException("Invalid ID.", e);
+        }
+        AssignToBounty((int)id, user.Id);
+        string responseString = "Assigned user " + user.Mention + " to bounty [" + id + "].";
         var response = new DiscordWebhookBuilder().WithContent(responseString);
         await ctx.EditResponseAsync(response);
     }
 
-    [SlashCommand("Set", "Set a bounty on a player"), RequireRole(committeeRole)]
-    public async Task SetBounty(InteractionContext ctx, [Option("Target", "The person this bounty should target.")] string target, [Option("Value", "The amount this bounty is worth.")] long bountyAmount, [Option("User", "The user to assign to the bounty.")] DiscordUser user = null)
+    [SlashCommand("Set", "Set a bounty on a player"), RequireRoles(committeeRole)]
+    public async Task SetBounty(InteractionContext ctx,
+        [Option("Target", "The person this bounty should target.")] string target,
+        [Option("Value", "The amount this bounty is worth.")] long bountyAmount,
+        [Option("User", "The user to assign to the bounty.")] DiscordUser user = null)
     {
         await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
         Bounty bounty = (user == null) ? CreateBounty(target, (int)bountyAmount, ctx.User.Id) : CreateBounty(target, (int)bountyAmount, ctx.User.Id, user.Id);
@@ -56,18 +77,29 @@ internal class BountyCommands : ApplicationCommandModule
         Log.Information("Bounty [{0}] has been created by {1}",bounty.ID, ctx.User.Username + '#' + ctx.User.Discriminator);
     }
 
-    [SlashCommand("Unassign", "Unassign a user friom a bounty."), RequireRole(committeeRole)]
-    public async Task UnassignBounty(InteractionContext ctx, [Option("BountyID", "The ID of the affected bounty.")] long bountyID, [Option("User", "The user to assign to the bounty.")] DiscordUser user)
+    [SlashCommand("Unassign", "Unassign a user friom a bounty."), RequireRoles(committeeRole)]
+    public async Task UnassignBounty(InteractionContext ctx,
+        [Autocomplete(typeof(BountyProvider))]
+        [Option("BountyID", "The ID of the affected bounty.")] string idString,
+        [Option("User", "The user to assign to the bounty.")] DiscordUser user)
     {
         await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-        bool acted = RemoveFromBounty((int)bountyID, user.Id);
-        string responseString = acted ? "Unassigned user " + user.Mention + " from bounty [" + bountyID + "]." : "User " + user.Mention + " not found on bounty [" + bountyID + "].";
+        int id;
+        try { id = int.Parse(idString); }
+        catch (FormatException e)
+        {
+            throw new ArgumentException("Invalid ID.", e);
+        }
+        bool acted = RemoveFromBounty(id, user.Id);
+        string responseString = acted ? "Unassigned user " + user.Mention + " from bounty [" + id + "]." : "User " + user.Mention + " not found on bounty [" + id + "].";
         var response = new DiscordWebhookBuilder().WithContent(responseString);
         await ctx.EditResponseAsync(response);
     }
 
     [SlashCommand("Propose", "Propose a bounty.")]
-    public async Task ProposeABounty(InteractionContext ctx, [Option("Target", "The person this bounty should target.")] string target, [Option("Value", "The amount this bounty is worth.")] long bountyAmount)
+    public async Task ProposeABounty(InteractionContext ctx,
+        [Option("Target", "The person this bounty should target.")] string target,
+        [Option("Value", "The amount this bounty is worth.")] long bountyAmount)
     {
         await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
         Bounty bounty = ProposeBounty(target, (int)bountyAmount, ctx.User.Id);
@@ -78,12 +110,20 @@ internal class BountyCommands : ApplicationCommandModule
         Log.Information("Bounty [{0}] has been proposed by {1}", bounty.ID, ctx.User.Username + '#' + ctx.User.Discriminator);
     }
 
-    [SlashCommand("Review", "Review proposed bounties"), RequireRole(committeeRole)]
-    public async Task ReviewProposals(InteractionContext ctx, [Option("ID","The specific ID to review. Leave blank to review all.")] long bountyID = -1)
+    [SlashCommand("Review", "Review proposed bounties"), RequireRoles(committeeRole)]
+    public async Task ReviewProposals(InteractionContext ctx,
+        [Autocomplete(typeof(BountyProvider))]
+        [Option("ID", "The specific ID to review. Exclude to review all.")] string idString = "-1")
     {
-        int count = 0;
         await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-        Bounty[] bounties = (bountyID >= 0) ? new[] { ProposedBounties.Where(x => x.ID == bountyID).First() } : ProposedBounties;
+        int id;
+        try { id = int.Parse(idString); }
+        catch (FormatException e)
+        {
+            throw new ArgumentException("Invalid ID.", e);
+        }
+        int count = 0;
+        Bounty[] bounties = (id >= 0) ? new[] { ProposedBounties.Where(x => x.ID == id).First() } : ProposedBounties;
         if (!ProposedBounties.Any())
         {
             await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("No proposals to review!"));

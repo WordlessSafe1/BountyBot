@@ -48,6 +48,10 @@ namespace BountyBot.Attributes
             (this.roleNames, this.checkMethod) = (roleNames?.Select(x => x.ToLower()), checkMethod);
         public RequireRolesAttribute(CheckMethod checkMethod, params ulong[] roleIDs) =>
             (this.roleIDs, this.checkMethod) = (roleIDs, checkMethod);
+        public RequireRolesAttribute(params string[] roleNames) =>
+            (this.checkMethod, this.roleNames) = (CheckMethod.All, roleNames);
+        public RequireRolesAttribute(params ulong[] roleIDs) =>
+            (this.checkMethod, this.roleIDs) = (CheckMethod.All, roleIDs);
 
 #pragma warning disable CS1998
         public override async Task<bool> ExecuteChecksAsync(InteractionContext ctx)
@@ -56,57 +60,27 @@ namespace BountyBot.Attributes
                 throw new ArgumentNullException("roleNames or roleIDs must be specified.");
             var userRoles = ctx.Member.Roles;
             bool useID = roleIDs is not null;
-            return (useID) ? CheckID(userRoles.Select(x => x.Id)) : CheckName(userRoles.Select(x => x.Name.ToLower()));
+            return useID ? GenCheck(roleIDs, userRoles.Select(x => x.Id)) : GenCheck(roleNames, userRoles.Select(x => x.Name));
         }
 #pragma warning restore CS1998
 
-        private bool CheckID(IEnumerable<ulong> expectedRoles) =>
+        private bool GenCheck<T>(IEnumerable<T> expected, IEnumerable<T> actual) =>
             checkMethod switch
             {
-                CheckMethod.All => AllCheckID(expectedRoles),
-                CheckMethod.Exactly => ExactlyCheckID(expectedRoles),
-                CheckMethod.Any => AnyCheckID(expectedRoles),
-                CheckMethod.None => NoneCheckID(expectedRoles),
+                CheckMethod.All => GenCheckAll(expected, actual),
+                CheckMethod.Exactly => GenCheckExactly(expected, actual),
+                CheckMethod.Any => GenCheckAny(expected, actual),
+                CheckMethod.None => GenCheckNone(expected, actual),
                 _ => throw new NotImplementedException()
             };
 
-        private bool AllCheckID(IEnumerable<ulong> expectedRoles) =>
-            roleIDs.Count() == expectedRoles.Count() && roleIDs.Where(x => expectedRoles.Contains(x)).Count() == expectedRoles.Count();
-        private bool ExactlyCheckID(IEnumerable<ulong> expectedRoles)
-        {
-            bool pass = true;
-            roleIDs.ToList().ForEach(x => pass &= expectedRoles.Contains(x));
-            expectedRoles.ToList().ForEach(x => pass &= roleIDs.Contains(x));
-            return pass;
-        }
-        private bool AnyCheckID(IEnumerable<ulong> expectedRoles) =>
-            roleIDs.Where(x => expectedRoles.Contains(x)).Any();
-        private bool NoneCheckID(IEnumerable<ulong> expectedRoles) =>
-            !roleIDs.Where(x => expectedRoles.Contains(x)).Any();
-
-
-        private bool CheckName(IEnumerable<string> expectedRoles) =>
-            checkMethod switch
-            {
-                CheckMethod.All => AllCheckName(expectedRoles),
-                CheckMethod.Exactly => ExactlyCheckName(expectedRoles),
-                CheckMethod.Any => AnyCheckName(expectedRoles),
-                CheckMethod.None => NoneCheckName(expectedRoles),
-                _ => throw new NotImplementedException()
-            };
-
-        private bool AllCheckName(IEnumerable<string> expectedRoles) =>
-            roleNames.Count() == expectedRoles.Count() && roleNames.Where(x => expectedRoles.Contains(x)).Count() == expectedRoles.Count();
-        private bool ExactlyCheckName(IEnumerable<string> expectedRoles)
-        {
-            bool pass = true;
-            roleNames.ToList().ForEach(x => pass &= expectedRoles.Contains(x));
-            expectedRoles.ToList().ForEach(x => pass &= roleNames.Contains(x));
-            return pass;
-        }
-        private bool AnyCheckName(IEnumerable<string> expectedRoles) =>
-            roleNames.Where(x => expectedRoles.Contains(x)).Any();
-        private bool NoneCheckName(IEnumerable<string> expectedRoles) =>
-            !roleNames.Where(x => expectedRoles.Contains(x)).Any();
+        private static bool GenCheckAll<T>(IEnumerable<T> expected, IEnumerable<T> actual) =>
+            expected.All(actual.Contains);
+        private static bool GenCheckAny<T>(IEnumerable<T> expected, IEnumerable<T> actual) =>
+            expected.Any(actual.Contains);
+        private static bool GenCheckExactly<T>(IEnumerable<T> expected, IEnumerable<T> actual) =>
+            expected.All(actual.Contains) && actual.Count() == expected.Count();
+        private static bool GenCheckNone<T>(IEnumerable<T> expected, IEnumerable<T> actual) =>
+            expected.All(x => !actual.Contains(x));
     }
 }
